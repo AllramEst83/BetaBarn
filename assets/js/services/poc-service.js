@@ -99,11 +99,8 @@ class POCService {
                 </div>
                 
                 <div class="card-actions mt-auto">
-                    <a href="${project.demoUrl}" class="btn btn-primary btn-sm">
+                    <a href="${project.demoUrl}" class="btn btn-primary btn-sm w-100">
                         View Demo
-                    </a>
-                    <a href="${project.sourceUrl}" class="btn btn-outline-secondary btn-sm">
-                        Source Code
                     </a>
                 </div>
             </div>
