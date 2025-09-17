@@ -12,7 +12,7 @@ The architecture of the POC interpreter consists of the following layers:
 - This layer may itself be an LLM, applying strict criteria to select the most suitable LLM.
 
 ###### LLM Layer
-- Contains multiple Large Language Models (LLMs) that ingest the speech-to-text output and generate responses:
+- Contains multiple Large Language Models (LLMs) that ingest the speech-to-text output and generate responses in the target language (Interpreter):
 	- OpenAI
 	- Google Gemini
 	- Anthropic Claude
