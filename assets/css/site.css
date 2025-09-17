@@ -374,3 +374,177 @@ footer {
     background-color: var(--bg-dark);
     border-top-color: var(--border-color);
 }
+
+/* POC Showcase Section Styles */
+.poc-showcase-section {
+    background-color: var(--bg-primary);
+    transition: background-color 0.3s ease;
+}
+
+.poc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.poc-card {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.poc-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-4px);
+    border-color: var(--primary-color);
+}
+
+.poc-icon {
+    font-size: 2.5rem;
+    line-height: 1;
+}
+
+.poc-title {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.poc-description {
+    color: var(--text-secondary);
+    line-height: 1.5;
+    font-size: 0.95rem;
+}
+
+.poc-technologies {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.tech-badge {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius);
+    font-size: 0.75rem;
+    font-weight: 500;
+    border: 1px solid var(--border-color);
+}
+
+.poc-features {
+    font-size: 0.85rem;
+}
+
+.feature-list {
+    list-style: none;
+    padding-left: 0;
+    margin: 0.5rem 0 0 0;
+}
+
+.feature-list li {
+    position: relative;
+    padding-left: 1rem;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    margin-bottom: 0.25rem;
+}
+
+.feature-list li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--success-color);
+    font-weight: bold;
+}
+
+.card-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.card-actions .btn {
+    flex: 1;
+    min-width: auto;
+}
+
+/* Status badges for POC cards */
+.status-badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.status-planning {
+    background-color: var(--info-color);
+    color: white;
+}
+
+.status-development {
+    background-color: var(--warning-color);
+    color: white;
+}
+
+.status-completed {
+    background-color: var(--success-color);
+    color: white;
+}
+
+/* Dark theme adjustments for POC section */
+[data-theme="dark"] .poc-showcase-section {
+    background-color: var(--bg-primary);
+}
+
+[data-theme="dark"] .poc-card {
+    background-color: var(--bg-primary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .tech-badge {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+/* Mobile responsive adjustments for POC grid */
+@media (max-width: 767.98px) {
+    .poc-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .poc-card {
+        margin-bottom: 0;
+    }
+    
+    .card-actions {
+        flex-direction: column;
+    }
+    
+    .card-actions .btn {
+        flex: none;
+        width: 100%;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .poc-icon {
+        font-size: 2rem;
+    }
+    
+    .poc-title {
+        font-size: 1.1rem;
+    }
+    
+    .poc-description {
+        font-size: 0.9rem;
+    }
+}

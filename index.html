@@ -22,7 +22,10 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="#about">About</a>
+                        <a class="nav-link active" href="#poc-showcase">Projects</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./assets/pages/about.html">About</a>
                     </li>
                 </ul>                
                 <button class="theme-toggle btn" id="themeToggle" title="Toggle Theme" aria-label="Toggle between light and dark theme">
@@ -33,81 +36,46 @@
     </nav>
 
     <main>
-    <!-- About Section -->
-    <section class="about-section py-5" id="about">
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto text-center">
+                    <h1 class="display-4 fw-bold mb-4">Beta Barn</h1>
+                    <p class="lead mb-4">
+                        Showcasing innovative proof of concepts and experimental web development projects
+                    </p>
+                    <div class="d-flex gap-3 justify-content-center">
+                        <a href="#poc-showcase" class="btn btn-light btn-lg">Explore Projects</a>
+                        <a href="./assets/pages/about.html" class="btn btn-outline-light btn-lg">Learn More</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- POC Showcase Section -->
+    <section class="poc-showcase-section py-5" id="poc-showcase">
         <div class="container">
             <div class="row">
                 <div class="col-lg-10 mx-auto">
                     <!-- Section Header -->
                     <div class="text-center mb-5">
-                        <h2 class="section-title mb-3">About Beta Barn</h2>
+                        <h2 class="section-title mb-3">Proof of Concepts</h2>
                         <div class="title-divider mx-auto mb-4"></div>
                         <p class="section-subtitle">
-                            Where innovative ideas meet cutting-edge implementation
+                            Explore our collection of experimental projects and innovative implementations
                         </p>
                     </div>
                     
-                    <!-- Main Content -->
-                    <div class="row g-4">
-                        <div class="col-md-6">
-                            <div class="about-card h-100">
-                                <div class="about-icon mb-3">
-                                    🚀
-                                </div>
-                                <h4 class="about-card-title mb-3">Our Mission</h4>
-                                <p class="about-card-text">
-                                    Beta Barn serves as a showcase platform for experimental projects and 
-                                    proof of concepts. Each project demonstrates different aspects of modern 
-                                    web development, from vanilla JavaScript implementations to advanced 
-                                    architectural patterns.
-                                </p>
+                    <!-- POC Grid -->
+                    <div id="pocGrid" class="poc-grid">
+                        <!-- POC items will be dynamically generated here -->
+                        <div class="text-center w-100">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading projects...</span>
                             </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="about-card h-100">
-                                <div class="about-icon mb-3">
-                                    💡
-                                </div>
-                                <h4 class="about-card-title mb-3">Our Approach</h4>
-                                <p class="about-card-text">
-                                    Built with clean, maintainable code following industry best practices, 
-                                    these projects are designed to inspire and educate fellow developers 
-                                    and business professionals about the possibilities of modern web technologies.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Features Grid -->
-                    <div class="row g-3 mt-4">
-                        <div class="col-sm-6 col-lg-3">
-                            <div class="feature-item text-center">
-                                <div class="feature-icon">⚡</div>
-                                <h6 class="feature-title">Fast & Modern</h6>
-                                <small class="feature-desc">Optimized performance with modern web standards</small>
-                            </div>
-                        </div>
-                        <div class="col-sm-6 col-lg-3">
-                            <div class="feature-item text-center">
-                                <div class="feature-icon">🎨</div>
-                                <h6 class="feature-title">Beautiful Design</h6>
-                                <small class="feature-desc">Clean, responsive interfaces that adapt to any device</small>
-                            </div>
-                        </div>
-                        <div class="col-sm-6 col-lg-3">
-                            <div class="feature-item text-center">
-                                <div class="feature-icon">🔧</div>
-                                <h6 class="feature-title">Best Practices</h6>
-                                <small class="feature-desc">Following industry standards and clean code principles</small>
-                            </div>
-                        </div>
-                        <div class="col-sm-6 col-lg-3">
-                            <div class="feature-item text-center">
-                                <div class="feature-icon">📚</div>
-                                <h6 class="feature-title">Educational</h6>
-                                <small class="feature-desc">Learn from real-world implementations and examples</small>
-                            </div>
+                            <p class="mt-2 text-muted">Loading proof of concepts...</p>
                         </div>
                     </div>
                 </div>
