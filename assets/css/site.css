@@ -110,6 +110,11 @@ body {
     border-color: var(--primary-color);
 }
 
+/* Bootstrap text-muted override for dark mode */
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
 .theme-toggle {
     background: none;
     border: 1px solid var(--border-color);
