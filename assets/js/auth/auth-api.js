@@ -81,11 +81,12 @@ export class AuthApiService {
     }
 
     /**
-     * Validate session (if you have a validation endpoint)
+     * Get projects (no authentication required)
      */
-    async validateSession() {
-        // This would call a session validation endpoint if available
-        // For now, we'll just return true since we're using simple auth
-        return { success: true, data: { valid: true } };
+    async getProjects() {
+        return await this.makeRequest(AUTH_CONFIG.ENDPOINTS.GET_PROJECTS, {
+            method: 'GET'
+        });
     }
+
 }

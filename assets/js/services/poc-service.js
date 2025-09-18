@@ -1,19 +1,26 @@
 /**
  * POC Service - Manages Proof of Concept projects
  */
+import { authService } from './authService.js';
+import { AuthApiService } from '../auth/auth-api.js';
+
 class POCService {
     constructor() {
         this.projects = [];
         this.gridContainer = null;
+        this.apiService = new AuthApiService();
+        this.isLoading = false;
         this.init();
     }
 
     /**
      * Initialize POC service
      */
-    init() {
-        this.loadSampleProjects();
+    async init() {
         this.gridContainer = document.getElementById('pocGrid');
+        
+        // Load projects from API
+        await this.loadProjectsFromAPI();
         
         // Render projects if grid container exists
         if (this.gridContainer) {
@@ -24,25 +31,91 @@ class POCService {
     }
 
     /**
-     * Load sample POC projects
+     * Load projects from API
+     */
+    async loadProjectsFromAPI() {
+        if (this.isLoading) return;
+        
+        this.isLoading = true;
+        this.showLoadingSpinner();
+        
+        try {
+            const response = await this.apiService.getProjects();
+            
+            if (response.success && response.data.success) {
+                this.projects = response.data.data.projects || [];
+                console.log('Projects loaded successfully:', this.projects.length);
+            } else {
+                console.error('Failed to load projects:', response.data?.message || response.error);
+                this.showError(response.data?.message || 'Failed to load projects');
+            }
+        } catch (error) {
+            console.error('Error loading projects:', error);
+            this.showError('Network error while loading projects');
+        } finally {
+            this.isLoading = false;
+            this.hideLoadingSpinner();
+        }
+    }
+
+    /**
+     * Show loading spinner
+     */
+    showLoadingSpinner() {
+        if (!this.gridContainer) return;
+        
+        this.gridContainer.innerHTML = `
+            <div class="text-center w-100">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading projects...</span>
+                </div>
+                <p class="mt-2 text-muted">Loading proof of concepts...</p>
+            </div>
+        `;
+    }
+
+    /**
+     * Hide loading spinner
+     */
+    hideLoadingSpinner() {
+        // The renderProjects method will replace the spinner content
+    }
+
+    /**
+     * Show error message
+     */
+    showError(message) {
+        if (!this.gridContainer) return;
+        
+        this.gridContainer.innerHTML = `
+            <div class="text-center w-100">
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    ${message}
+                </div>
+                <button class="btn btn-outline-primary" onclick="location.reload()">
+                    <i class="fas fa-refresh me-2"></i>Retry
+                </button>
+            </div>
+        `;
+    }
+
+    /**
+     * Load sample POC projects (legacy method - now unused)
      */
     loadSampleProjects() {
-        const sampleProjects = [
-            {
-                id: 'llm-interpreter',
-                title: 'LLM Interpreter',
-                description: 'A multi-layered AI interpreter system featuring speech-to-text conversion, intelligent LLM evaluation, and text-to-speech output for seamless multilingual communication.',
-                status: 'planning',
-                technologies: ['Azure Speech Services', 'OpenAI', 'Google Gemini', 'Anthropic Claude'],
-                icon: '🗣️',
-                demoUrl: '#',
-                sourceUrl: '#',
-                features: ['Speech-to-text conversion', 'Multi-LLM evaluation layer', 'Intelligent model selection', 'Text-to-speech output'],
-                demoIsDisabled: true
-            }
-        ];
+        // This method is no longer used as projects are loaded from API
+        console.warn('loadSampleProjects is deprecated. Use loadProjectsFromAPI instead.');
+    }
 
-        this.projects = sampleProjects;
+    /**
+     * Reload projects from API
+     */
+    async reloadProjects() {
+        await this.loadProjectsFromAPI();
+        if (this.gridContainer) {
+            this.renderProjects();
+        }
     }
 
     /**
@@ -51,8 +124,21 @@ class POCService {
     renderProjects() {
         if (!this.gridContainer) return;
 
-        // Clear loading spinner
+        // Clear current content
         this.gridContainer.innerHTML = '';
+
+        // Check if there are projects to display
+        if (this.projects.length === 0) {
+            this.gridContainer.innerHTML = `
+                <div class="text-center w-100">
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        No projects available at the moment.
+                    </div>
+                </div>
+            `;
+            return;
+        }
 
         // Create project cards
         this.projects.forEach(project => {

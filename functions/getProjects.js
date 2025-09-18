@@ -1,9 +1,11 @@
+const { projectData } = require('./data/projectData.js');
+
 exports.handler = async function (event, context) {
     // Set CORS headers
     const headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
         'Content-Type': 'application/json'
     };
 
@@ -15,8 +17,8 @@ exports.handler = async function (event, context) {
         };
     }
 
-    // Only allow POST requests
-    if (event.httpMethod !== 'POST') {
+    // Allow both GET and POST requests
+    if (event.httpMethod !== 'GET') {
         return {
             statusCode: 405,
             headers,
@@ -25,11 +27,21 @@ exports.handler = async function (event, context) {
     }
 
     try {
-        // Move PoC projects here
-
+        // Return projects for all users
+        return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify({ 
+                success: true, 
+                message: 'Projects retrieved successfully',
+                data: {
+                    projects: projectData
+                }
+            })
+        };
 
     } catch (error) {
-        console.error('Login error:', error);
+        console.error('Get projects error:', error);
         return {
             statusCode: 500,
             headers,

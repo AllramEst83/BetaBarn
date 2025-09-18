@@ -5,7 +5,8 @@
 export const AUTH_CONFIG = {
     // API Endpoints
     ENDPOINTS: {
-        SIGNIN: 'signIn'
+        SIGNIN: 'signIn',
+        GET_PROJECTS: 'getProjects'
     },
     
     // Storage Keys
