@@ -10,6 +10,8 @@ class App {
         this.themeService = new ThemeService();
         this.pocService = new POCService();
         this.authService = authService;
+        this.authLoadingOverlay = document.getElementById('auth-loading-overlay');
+        this.mainContent = document.getElementById('main-content');
         this.init();
     }
 
@@ -18,6 +20,12 @@ class App {
      */
     async init() {
         try {
+            // Show auth loading spinner
+            this.showAuthLoading();
+            
+            // Add a small delay to show the beautiful spinner
+            await this.delay(1500);
+            
             // Check authentication first
             const authResult = await this.initializeAuth();
             
@@ -29,10 +37,70 @@ class App {
             // Initialize other services
             this.setupEventListeners();
             
+            // Hide loading spinner and show main content
+            await this.hideAuthLoadingAndShowContent();
+            
             console.log('🚀 Beta Barn initialized successfully');
         } catch (error) {
             console.error('Failed to initialize app:', error);
+            // Hide loading spinner even on error
+            this.hideAuthLoading();
         }
+    }
+
+    /**
+     * Show auth loading spinner
+     */
+    showAuthLoading() {
+        if (this.authLoadingOverlay) {
+            this.authLoadingOverlay.style.display = 'flex';
+            this.authLoadingOverlay.classList.remove('fade-out');
+        }
+        if (this.mainContent) {
+            this.mainContent.style.display = 'none';
+        }
+    }
+
+    /**
+     * Hide auth loading spinner
+     */
+    hideAuthLoading() {
+        if (this.authLoadingOverlay) {
+            this.authLoadingOverlay.classList.add('fade-out');
+            setTimeout(() => {
+                this.authLoadingOverlay.style.display = 'none';
+            }, 500); // Match the CSS transition duration
+        }
+    }
+
+    /**
+     * Hide auth loading and show main content with smooth transition
+     */
+    async hideAuthLoadingAndShowContent() {
+        return new Promise((resolve) => {
+            if (this.authLoadingOverlay) {
+                this.authLoadingOverlay.classList.add('fade-out');
+                setTimeout(() => {
+                    this.authLoadingOverlay.style.display = 'none';
+                    if (this.mainContent) {
+                        this.mainContent.style.display = 'block';
+                    }
+                    resolve();
+                }, 500); // Match the CSS transition duration
+            } else {
+                if (this.mainContent) {
+                    this.mainContent.style.display = 'block';
+                }
+                resolve();
+            }
+        });
+    }
+
+    /**
+     * Utility function to add delay
+     */
+    delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     /**
