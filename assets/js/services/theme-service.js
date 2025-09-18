@@ -53,8 +53,15 @@ class ThemeService {
      * @param {string} icon - The emoji icon to display
      */
     updateThemeToggleIcon(icon) {
+        // Update original theme toggle
         if (this.themeToggle) {
             this.themeToggle.textContent = icon;
+        }
+        
+        // Update auth theme toggle if it exists
+        const authThemeToggle = document.getElementById('themeToggleAuth');
+        if (authThemeToggle) {
+            authThemeToggle.textContent = icon;
         }
     }
 

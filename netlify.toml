@@ -1,0 +1,14 @@
+[build]
+  # This tells Netlify where your serverless functions are located.
+  functions = "functions/"
+
+[dev]
+  # Settings for local development
+  port = 8888
+  functionsPort = 9999
+  publish = "."
+
+# Environment variables (for production, set these in Netlify UI)
+# For local development, create a .env file in the root directory with:
+# KAYS_USERNAME=your_username
+# KAYS_PASSWORD=your_password

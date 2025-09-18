@@ -37,7 +37,8 @@ class POCService {
                 icon: '🗣️',
                 demoUrl: '#',
                 sourceUrl: '#',
-                features: ['Speech-to-text conversion', 'Multi-LLM evaluation layer', 'Intelligent model selection', 'Text-to-speech output']
+                features: ['Speech-to-text conversion', 'Multi-LLM evaluation layer', 'Intelligent model selection', 'Text-to-speech output'],
+                demoIsDisabled: true
             }
         ];
 
@@ -99,12 +100,20 @@ class POCService {
                 </div>
                 
                 <div class="card-actions mt-auto">
-                    <a href="${project.demoUrl}" class="btn btn-primary btn-sm w-100">
+                    <a href="${project.demoIsDisabled ? project.demoUrl : '#'}" class="btn btn-primary btn-sm w-100${!project.demoIsDisabled ? ' disabled' : ''}" ${!project.demoIsDisabled ? 'tabindex="-1" aria-disabled="true"' : ''}>
                         View Demo
                     </a>
                 </div>
             </div>
         `;
+
+        // Prevent navigation if not active
+        const demoBtn = card.querySelector('.btn');
+        if (!project.isActive) {
+            demoBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+            });
+        }
 
         return card;
     }
