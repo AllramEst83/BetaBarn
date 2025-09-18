@@ -49,7 +49,6 @@ class AboutApp {
      */
     setupAuthenticatedUI() {
         this.addUserInfo();
-        this.addLogoutButton();
     }
 
     /**

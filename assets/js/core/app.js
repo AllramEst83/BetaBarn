@@ -19,7 +19,12 @@ class App {
     async init() {
         try {
             // Check authentication first
-            await this.initializeAuth();
+            const authResult = await this.initializeAuth();
+            
+            // If user was redirected to login, don't continue initialization
+            if (authResult === 'redirected') {
+                return;
+            }
             
             // Initialize other services
             this.setupEventListeners();
@@ -36,7 +41,7 @@ class App {
     async initializeAuth() {
         // Check if user needs to be redirected to login
         if (!this.authService.requireAuth()) {
-            return; // Will redirect to login
+            return 'redirected'; // Will redirect to login
         }
 
         // Check if authenticated user is on login page
@@ -44,6 +49,8 @@ class App {
 
         // If we reach here, user is authenticated and on a valid page
         this.setupAuthenticatedUI();
+        
+        return 'authenticated';
     }
 
     /**
@@ -51,7 +58,6 @@ class App {
      */
     setupAuthenticatedUI() {
         this.addUserInfo();
-        this.addLogoutButton();
     }
 
     /**
@@ -133,19 +139,6 @@ class App {
             // Add click handler that uses the theme service
             themeToggleAuth.addEventListener('click', () => {
                 this.themeService.toggleTheme();
-            });
-        }
-    }
-
-    /**
-     * Add logout button (fallback method)
-     */
-    addLogoutButton() {
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.handleLogout();
             });
         }
     }
