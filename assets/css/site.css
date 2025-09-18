@@ -61,6 +61,9 @@ body {
     color: var(--text-primary);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     transition: background-color 0.3s ease, color 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 .navbar-brand {
@@ -233,9 +236,10 @@ html, body {
     height: 100%;
 }
 
-body {
+#main-content {
     display: flex;
     flex-direction: column;
+    flex: 1;
 }
 
 main {
@@ -244,10 +248,7 @@ main {
 
 footer {
     flex-shrink: 0;
-    position: sticky;
-    bottom: 0;
-    z-index: 10;
-    margin-top: auto; /* Push footer to bottom */
+    margin-top: auto;
 }
 
 /* Navigation styling improvements for dark mode */
