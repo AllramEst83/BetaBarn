@@ -1,4 +1,4 @@
-const AzureSpeechProvider = require('../tokenProviders/AzureSpeechProvider');
+const AzureSpeechProvider = require('../tokenProviders/AzureSpeechProvider.js');
 
 /**
  * Main access token service that manages multiple token providers
