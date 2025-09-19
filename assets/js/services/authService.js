@@ -7,7 +7,7 @@ import { RouteGuardService } from '../auth/route-guard.js';
  * Main Authentication Service
  * Orchestrates all authentication-related functionality
  */
-export class AuthService {
+class AuthService {
     constructor() {
         this.apiService = new AuthApiService();
         this.storageService = new AuthStorageService();

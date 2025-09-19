@@ -1,6 +1,15 @@
- import { authService } from '../services/authService.js';
+ import AuthService from "../services/authService.js";
 
-        document.addEventListener('DOMContentLoaded', function() {
+ class Login {
+
+    constructor() {
+        this.authService = new AuthService();
+        this.init();
+    }
+
+    init() {
+        // Use arrow function or bind to preserve 'this' context
+        const initializeLogin = () => {
             const loginForm = document.getElementById('loginForm');
             const loginButton = document.getElementById('loginButton');
             const alertDiv = document.getElementById('alert');
@@ -8,8 +17,8 @@
             const passwordInput = document.getElementById('password');
 
             // Check if already authenticated
-            if (authService.isAuthenticated()) {
-                authService.redirectAfterLogin();
+            if (this.authService.isAuthenticated()) {
+                this.authService.redirectAfterLogin();
                 return;
             }
 
@@ -39,7 +48,7 @@
                 }
             }
 
-            loginForm.addEventListener('submit', async function(e) {
+            loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
                 const username = usernameInput.value.trim();
@@ -54,12 +63,12 @@
                 setLoading(true);
 
                 try {
-                    const result = await authService.login(username, password);
+                    const result = await this.authService.login(username, password);
                     
                     if (result.success) {
                         showAlert(result.message, 'success');
                         setTimeout(() => {
-                            authService.redirectAfterLogin();
+                            this.authService.redirectAfterLogin();
                         }, 1000);
                     } else {
                         showAlert(result.message);
@@ -83,4 +92,24 @@
             window.addEventListener('auth:login', (event) => {
                 console.log('User logged in:', event.detail);
             });
-        });
+        };
+
+        // Check if DOM is already loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeLogin);
+        } else {
+            initializeLogin();
+        }
+    }
+ }
+       
+ 
+// Export for both module systems and browser
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Login;
+} else {
+    window.Login = Login;
+}
+
+// Initialize the login functionality
+new Login();
