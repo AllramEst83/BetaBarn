@@ -1,5 +1,5 @@
 
-const AccessTokenService = require('./services/tokenService');
+const AccessTokenService = require('./services/tokenService.js');
 
 exports.handler = async function (event, context) {
     console.log('Access token request received');
