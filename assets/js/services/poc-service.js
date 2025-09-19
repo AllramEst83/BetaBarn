@@ -1,14 +1,16 @@
 /**
  * POC Service - Manages Proof of Concept projects
  */
-import { authService } from './authService.js';
-import { AuthApiService } from '../auth/auth-api.js';
+import AuthService from './authService.js';
+import ProjectService from '../services/projectService.js';
 
 class POCService {
     constructor() {
+        this.authService = new AuthService();
+        this.projectService = new ProjectService();
+
         this.projects = [];
         this.gridContainer = null;
-        this.apiService = new AuthApiService();
         this.isLoading = false;
         this.init();
     }
@@ -40,7 +42,7 @@ class POCService {
         this.showLoadingSpinner();
         
         try {
-            const response = await this.apiService.getProjects();
+            const response = await this.projectService.getProjects();
             
             if (response.success && response.data.success) {
                 this.projects = response.data.data.projects || [];
@@ -186,16 +188,16 @@ class POCService {
                 </div>
                 
                 <div class="card-actions mt-auto">
-                    <a href="${project.demoIsDisabled ? project.demoUrl : '#'}" class="btn btn-primary btn-sm w-100${!project.demoIsDisabled ? ' disabled' : ''}" ${!project.demoIsDisabled ? 'tabindex="-1" aria-disabled="true"' : ''}>
+                    <a href="${project.isDisabled ? '#' : project.demoUrl}" class="btn btn-primary btn-sm w-100${project.isDisabled ? ' disabled' : ''}" ${project.isDisabled ? 'tabindex="-1" aria-disabled="true"' : ''}>
                         View Demo
                     </a>
                 </div>
             </div>
         `;
 
-        // Prevent navigation if not active
+        // Prevent navigation if demo is disabled
         const demoBtn = card.querySelector('.btn');
-        if (!project.isActive) {
+        if (project.demoIsDisabled) {
             demoBtn.addEventListener('click', function(e) {
                 e.preventDefault();
             });
@@ -281,3 +283,8 @@ class POCService {
 }
 
 export default POCService;
+
+// Export for module usage if needed
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = POCService;
+}

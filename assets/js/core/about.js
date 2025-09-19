@@ -1,5 +1,5 @@
 import ThemeService from '../services/theme-service.js';
-import { authService } from '../services/authService.js';
+import { AuthService } from '../services/authService.js';
 
 /**
  * About Page App Class - Handles about page specific functionality
@@ -7,7 +7,7 @@ import { authService } from '../services/authService.js';
 class AboutApp {
     constructor() {
         this.themeService = new ThemeService();
-        this.authService = authService;
+        this.authService = new AuthService();
         this.authLoadingOverlay = document.getElementById('auth-loading-overlay');
         this.mainContent = document.getElementById('main-content');
         this.init();

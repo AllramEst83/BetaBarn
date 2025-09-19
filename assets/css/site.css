@@ -996,3 +996,263 @@ footer {
 [data-theme="dark"] .auth-spinner-ring:nth-child(3) {
     border-bottom: 0.25rem solid rgba(59, 130, 246, 0.4);
 }
+
+/* LLM Interpreter Specific Styles */
+.interpreter-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.language-select {
+    min-width: 250px;
+    max-width: 400px;
+    transition: border-color 0.3s ease;
+}
+
+.language-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+}
+
+.control-button {
+    min-width: 150px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.control-button:hover {
+    transform: translateY(-2px);
+}
+
+.control-button:disabled {
+    transform: none;
+}
+
+.control-button .mic-icon {
+    font-size: 1.2em;
+    margin-right: 0.5rem;
+}
+
+.status-display {
+    min-height: 60px;
+    font-size: 1rem;
+    line-height: 1.5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.recognition-text {
+    height: 400px;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color) !important;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.recognition-text.active {
+    border-color: var(--success-color) !important;
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.chat-list {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.chat-message {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    position: relative;
+    animation: slideIn 0.3s ease-out;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+}
+
+.chat-message:last-child {
+    border-bottom: none;
+}
+
+.chat-message.interim {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning-color);
+    font-style: italic;
+    border-left: 3px solid var(--warning-color);
+}
+
+.chat-message.final {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+    border-left: 3px solid var(--success-color);
+}
+
+.chat-message .timestamp {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    float: right;
+    margin-left: 0.75rem;
+}
+
+.chat-message .text {
+    word-wrap: break-word;
+    line-height: 1.4;
+    color: inherit;
+}
+
+.empty-state {
+    padding: 2.5rem 1.25rem;
+    color: var(--text-muted);
+    background: var(--bg-primary);
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid #ffffff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 0.5rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Dark theme specific adjustments for LLM Interpreter */
+[data-theme="dark"] .interpreter-card {
+    background: var(--bg-primary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .recognition-text {
+    background: var(--bg-secondary);
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .recognition-text.active {
+    background: rgba(16, 185, 129, 0.1);
+}
+
+[data-theme="dark"] .chat-message {
+    background: var(--bg-primary);
+    border-bottom-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .chat-message.interim {
+    background: rgba(245, 158, 11, 0.15);
+}
+
+[data-theme="dark"] .chat-message.final {
+    background: rgba(16, 185, 129, 0.15);
+}
+
+[data-theme="dark"] .empty-state {
+    background: var(--bg-primary);
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .language-select {
+    background: var(--bg-primary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .language-select:focus {
+    background: var(--bg-primary);
+    border-color: var(--primary-color);
+    color: var(--text-primary);
+}
+
+/* Mobile responsive adjustments for LLM Interpreter */
+@media (max-width: 767.98px) {
+    .interpreter-card {
+        margin: 0.5rem !important;
+    }
+    
+    .recognition-text {
+        height: 300px; /* Smaller height on mobile */
+    }
+    
+    .control-button {
+        min-width: 120px;
+        font-size: 0.9rem;
+        padding: 0.75rem 1rem !important;
+    }
+    
+    .control-button .mic-icon {
+        font-size: 1rem;
+    }
+    
+    .language-select {
+        min-width: 200px;
+        font-size: 0.9rem;
+    }
+    
+    .card-title.h2 {
+        font-size: 1.75rem;
+    }
+    
+    .status-display {
+        font-size: 0.9rem;
+        min-height: 50px;
+        padding: 0.75rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .interpreter-card {
+        margin: 0.25rem !important;
+    }
+    
+    .card-body {
+        padding: 1.5rem !important;
+    }
+    
+    .recognition-text {
+        height: 250px; /* Even smaller on very small screens */
+    }
+    
+    .control-button {
+        min-width: 100px;
+        font-size: 0.85rem;
+        padding: 0.65rem 0.85rem !important;
+    }
+    
+    .language-select {
+        min-width: 180px;
+        font-size: 0.85rem;
+    }
+    
+    .card-title.h2 {
+        font-size: 1.5rem;
+    }
+    
+    .card-text {
+        font-size: 0.9rem;
+    }
+    
+    .form-label {
+        font-size: 0.9rem;
+    }
+}

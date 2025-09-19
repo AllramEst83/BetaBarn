@@ -75,3 +75,8 @@ class ThemeService {
 }
 
 export default ThemeService;
+
+// Export for module usage if needed
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = ThemeService;
+}

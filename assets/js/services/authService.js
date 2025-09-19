@@ -219,7 +219,7 @@ export class AuthService {
 }
 
 // Export singleton instance
-export const authService = new AuthService();
+export default AuthService;
 
 // Export for module usage if needed
 if (typeof module !== 'undefined' && module.exports) {

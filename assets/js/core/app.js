@@ -1,6 +1,6 @@
 import ThemeService from '../services/theme-service.js';
 import POCService from '../services/poc-service.js';
-import { authService } from '../services/authService.js';
+import AuthService from '../services/authService.js';
 
 /**
  * Main App Class - Orchestrates the application
@@ -9,7 +9,8 @@ class App {
     constructor() {
         this.themeService = new ThemeService();
         this.pocService = new POCService();
-        this.authService = authService;
+        this.authService = new AuthService();
+        
         this.authLoadingOverlay = document.getElementById('auth-loading-overlay');
         this.mainContent = document.getElementById('main-content');
         this.init();
