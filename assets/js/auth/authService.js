@@ -1,7 +1,7 @@
-import { AUTH_CONFIG } from '../auth/auth-config.js';
-import { AuthApiService } from '../auth/auth-api.js';
-import { AuthStorageService } from '../auth/auth-storage.js';
-import { RouteGuardService } from '../auth/route-guard.js';
+import { AUTH_CONFIG } from './auth-config.js';
+import { AuthApiService } from './auth-api.js';
+import { AuthStorageService } from './auth-storage.js';
+import { RouteGuardService } from './route-guard.js';
 
 /**
  * Main Authentication Service

@@ -1,5 +1,5 @@
-import ThemeService from '../services/theme-service.js';
-import AuthService from '../services/authService.js';
+import ThemeService from '../theme/theme-service.js';
+import AuthService from '../auth/authService.js';
 
 /**
  * About Page App Class - Handles about page specific functionality

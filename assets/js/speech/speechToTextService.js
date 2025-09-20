@@ -1,6 +1,6 @@
-import AccessTokenService from '../services/accessTokenService.js';
+import AccessTokenService from '../token/accessTokenService.js';
 
-class SpeechService {
+class SpeechToTextService {
     constructor() {
         this.accessTokenService = new AccessTokenService();
         this.speechConfig = null;
@@ -161,9 +161,9 @@ class SpeechService {
     }
 }
 
-export default SpeechService;
+export default SpeechToTextService;
 
 // Export for module usage if needed
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = SpeechService;
+    module.exports = SpeechToTextService;
 }

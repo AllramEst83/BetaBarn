@@ -1,9 +1,8 @@
+import AuthService from '../auth/authService.js';
+import ProjectService from './projectService.js';
 /**
  * POC Service - Manages Proof of Concept projects
  */
-import AuthService from './authService.js';
-import ProjectService from '../services/projectService.js';
-
 class POCService {
     constructor() {
         this.authService = new AuthService();

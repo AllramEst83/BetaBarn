@@ -1,5 +1,5 @@
 
-import APIService from "./apiService.js";
+import APIService from "../api/apiService.js";
 import { AUTH_CONFIG } from '../auth/auth-config.js';
 
 /**

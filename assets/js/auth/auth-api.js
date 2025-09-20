@@ -1,5 +1,5 @@
 import { AUTH_CONFIG, ENV } from './auth-config.js';
-import APIService from '../services/apiService.js';
+import APIService from '../api/apiService.js';
 
 /**
  * Authentication API Service

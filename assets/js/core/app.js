@@ -1,6 +1,6 @@
-import ThemeService from '../services/theme-service.js';
-import POCService from '../services/poc-service.js';
-import AuthService from '../services/authService.js';
+import ThemeService from '../theme/theme-service.js';
+import POCService from '../poc/poc-service.js';
+import AuthService from '../auth/authService.js';
 
 /**
  * Main App Class - Orchestrates the application

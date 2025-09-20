@@ -1,4 +1,4 @@
-import AccessTokenService from '../services/accessTokenService.js';
+import AccessTokenService from '../token/accessTokenService.js';
 
 
 class TextToSpeechService {

@@ -1,13 +1,13 @@
-import AuthService from '../services/authService.js';
-import ThemeService from '../services/theme-service.js';
-import SpeechService from '../services/speechService.js';
-import TextToSpeechService from '../services/textToSpeechService.js';
-import AccessTokenService from '../services/accessTokenService.js';
+import AuthService from '../auth/authService.js';
+import ThemeService from '../theme/theme-service.js';
+import SpeechToTextService from '../speech/speechToTextService.js';
+import TextToSpeechService from '../speech/textToSpeechService.js';
+import AccessTokenService from '../token/accessTokenService.js';
 
 class LLMInterpreter {
     constructor(options = {}) {
         this.options = options;
-        this.speechService = new SpeechService();
+        this.speechService = new SpeechToTextService();
         this.accessTokenService = new AccessTokenService();
         this.authService = new AuthService();
         this.themeService = new ThemeService();
