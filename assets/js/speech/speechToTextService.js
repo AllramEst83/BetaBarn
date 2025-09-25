@@ -34,6 +34,7 @@ class SpeechToTextService {
         // Set additional properties for better recognition
         this.speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, "5000");
         this.speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs, "5000");
+        this.speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_LanguageIdMode, "Continuous");
         
         console.log('Speech config initialized successfully');
     }
