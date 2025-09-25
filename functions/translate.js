@@ -1,4 +1,5 @@
 const GeminiService = require('./services/llm/geminiService.js');
+const languageService = require('./services/languageService.js');
 
 exports.handler = async (event, context) => {
   console.log('Translation request received:', {
@@ -100,60 +101,8 @@ exports.handler = async (event, context) => {
 
     console.log('Gemini API key found, initializing service...');
 
-    // Comprehensive language mapping for better Gemini understanding
-    const languageMap = {
-      'en-US': 'English (United States)',
-      'en-GB': 'English (United Kingdom)',
-      'es-ES': 'Spanish (Spain)',
-      'es-MX': 'Spanish (Mexico)',
-      'fr-FR': 'French (France)',
-      'fr-CA': 'French (Canada)',
-      'de-DE': 'German (Germany)',
-      'it-IT': 'Italian (Italy)',
-      'pt-BR': 'Portuguese (Brazil)',
-      'pt-PT': 'Portuguese (Portugal)',
-      'ru-RU': 'Russian',
-      'ja-JP': 'Japanese',
-      'ko-KR': 'Korean',
-      'zh-CN': 'Chinese (Simplified)',
-      'zh-TW': 'Chinese (Traditional)',
-      'ar-SA': 'Arabic (Saudi Arabia)',
-      'hi-IN': 'Hindi (India)',
-      'th-TH': 'Thai',
-      'vi-VN': 'Vietnamese',
-      'pl-PL': 'Polish',
-      'nl-NL': 'Dutch (Netherlands)',
-      'sv-SE': 'Swedish',
-      'da-DK': 'Danish',
-      'no-NO': 'Norwegian',
-      'fi-FI': 'Finnish',
-      'tr-TR': 'Turkish',
-      'he-IL': 'Hebrew',
-      'cs-CZ': 'Czech',
-      'sk-SK': 'Slovak',
-      'hu-HU': 'Hungarian',
-      'ro-RO': 'Romanian',
-      'bg-BG': 'Bulgarian',
-      'hr-HR': 'Croatian',
-      'sr-RS': 'Serbian',
-      'sl-SI': 'Slovenian',
-      'et-EE': 'Estonian',
-      'lv-LV': 'Latvian',
-      'lt-LT': 'Lithuanian',
-      'mt-MT': 'Maltese',
-      'cy-GB': 'Welsh',
-      'ga-IE': 'Irish',
-      'is-IS': 'Icelandic',
-      'mk-MK': 'Macedonian',
-      'sq-AL': 'Albanian',
-      'eu-ES': 'Basque',
-      'ca-ES': 'Catalan',
-      'gl-ES': 'Galician'
-    };
-
-    const uiService = {
-      languages: languageMap
-    };
+    // Use centralized language service
+    const uiService = languageService.createUIService();
 
     const geminiService = new GeminiService(apiKey);
     
@@ -188,8 +137,8 @@ exports.handler = async (event, context) => {
           translation: fullTranslation || translation,
           sourceLanguage: langCode1,
           targetLanguage: langCode2,
-          sourceLanguageName: languageMap[langCode1] || langCode1,
-          targetLanguageName: languageMap[langCode2] || langCode2,
+          sourceLanguageName: languageService.getLanguageName(langCode1),
+          targetLanguageName: languageService.getLanguageName(langCode2),
           originalText: text
         })
       };

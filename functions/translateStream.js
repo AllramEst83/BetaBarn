@@ -1,4 +1,5 @@
 const GeminiService = require('./services/llm/geminiService.js');
+const languageService = require('./services/languageService.js');
 
 exports.handler = async (event, context) => {
   // Set CORS headers
@@ -50,34 +51,8 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Language mapping for better Gemini understanding
-    const languageMap = {
-      'en-US': 'English',
-      'es-ES': 'Spanish',
-      'fr-FR': 'French',
-      'de-DE': 'German',
-      'it-IT': 'Italian',
-      'pt-BR': 'Portuguese',
-      'ru-RU': 'Russian',
-      'ja-JP': 'Japanese',
-      'ko-KR': 'Korean',
-      'zh-CN': 'Chinese (Simplified)',
-      'zh-TW': 'Chinese (Traditional)',
-      'ar-SA': 'Arabic',
-      'hi-IN': 'Hindi',
-      'th-TH': 'Thai',
-      'vi-VN': 'Vietnamese',
-      'pl-PL': 'Polish',
-      'nl-NL': 'Dutch',
-      'sv-SE': 'Swedish',
-      'da-DK': 'Danish',
-      'no-NO': 'Norwegian',
-      'fi-FI': 'Finnish'
-    };
-
-    const uiService = {
-      languages: languageMap
-    };
+    // Use centralized language service
+    const uiService = languageService.createUIService();
 
     // For streaming response, we need to return immediately and let the client handle the stream
     const geminiService = new GeminiService(apiKey);
