@@ -178,7 +178,7 @@ class LLMInterpreter {
                         const recommendedVoices = await this.textToSpeechService.getRecommendedVoices(this.currentLanguage, 1);
                         const voiceName = recommendedVoices.length > 0 ? recommendedVoices[0].shortName : undefined;
 
-                        this.textToSpeechService.speak(text, { 
+                        this.textToSpeechService.speakQueued(text, { 
                             language: this.currentLanguage, 
                             voice: voiceName 
                         });

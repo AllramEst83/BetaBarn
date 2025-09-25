@@ -10,6 +10,13 @@ class TextToSpeechService {
         this.voicesCacheTimestamp = null;
         this.cacheTimeout = 10 * 60 * 1000; // 10 minutes
         this.isInitialized = false;
+
+        // Audio queue properties
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        this.lastQueuedEndTime = 0;
+        this.maxQueuedDuration = 10; // For UI normalization
+        this.queueObserverInterval = null;
+        this.onQueueUpdate = null;
     }
 
     async init() {
@@ -35,8 +42,9 @@ class TextToSpeechService {
             // Set default output format
             this.speechConfig.speechSynthesisOutputFormat = SpeechSDK.SpeechSynthesisOutputFormat.Audio16Khz32KBitRateMonoMp3;
 
-            // Initialize synthesizer
-            this.synthesizer = new SpeechSDK.SpeechSynthesizer(this.speechConfig);
+            // Initialize single synthesizer for in-memory synthesis (always use queueing)
+            const audioConfig = SpeechSDK.AudioConfig.fromStreamOutput(SpeechSDK.PullAudioOutputStream.create());
+            this.synthesizer = new SpeechSDK.SpeechSynthesizer(this.speechConfig, audioConfig);
             
             this.isInitialized = true;
             console.log('TextToSpeechService initialized successfully');
@@ -44,6 +52,42 @@ class TextToSpeechService {
         } catch (error) {
             console.error('Failed to initialize TextToSpeechService:', error);
             throw error;
+        }
+    }
+    
+    /**
+     * Starts a periodic observer to report queue status.
+     * @param {function} onUpdate - Callback function that receives queue status.
+     */
+    startQueueObserver(onUpdate) {
+        if (typeof onUpdate !== 'function') {
+            throw new Error('onUpdate callback must be a function.');
+        }
+        this.onQueueUpdate = onUpdate;
+
+        if (this.queueObserverInterval) {
+            clearInterval(this.queueObserverInterval);
+        }
+
+        this.queueObserverInterval = setInterval(() => {
+            const remaining = Math.max(this.lastQueuedEndTime - this.audioContext.currentTime, 0);
+            this.maxQueuedDuration = Math.max(this.maxQueuedDuration, remaining);
+
+            this.onQueueUpdate({
+                remaining,
+                maxQueuedDuration: this.maxQueuedDuration,
+                isQueueActive: remaining > 0.1,
+            });
+        }, 100);
+    }
+
+    /**
+     * Stops the queue observer.
+     */
+    stopQueueObserver() {
+        if (this.queueObserverInterval) {
+            clearInterval(this.queueObserverInterval);
+            this.queueObserverInterval = null;
         }
     }
     
@@ -261,58 +305,99 @@ class TextToSpeechService {
     }
 
     /**
-     * Play synthesized audio directly
+     * Synthesize text and play it through the audio queue.
+     * @param {string} text - Text to synthesize.
+     * @param {Object} [options] - Synthesis options.
+     * @returns {Promise<void>}
+     */
+    async speakQueued(text, options = {}) {
+        if (!text || !text.trim()) {
+            return; // Do nothing if text is empty
+        }
+
+        if (this.audioContext.state === 'suspended') {
+            await this.audioContext.resume();
+        }
+        
+        try {
+            const audioData = await this.synthesize(text, options);
+            const decodedBuffer = await this._decodeAudio(audioData);
+            this._enqueueAndPlay(decodedBuffer);
+        } catch (error) {
+            console.error('Failed to synthesize and queue audio:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Decodes an ArrayBuffer into an AudioBuffer.
+     * @param {ArrayBuffer} audioBuffer - The raw audio data.
+     * @returns {Promise<AudioBuffer>}
+     * @private
+     */
+    _decodeAudio(audioBuffer) {
+        return new Promise((resolve, reject) => {
+            if (!(audioBuffer instanceof ArrayBuffer)) {
+                return reject(new Error('Input must be an ArrayBuffer.'));
+            }
+            this.audioContext.decodeAudioData(audioBuffer, resolve, reject);
+        });
+    }
+
+    /**
+     * Schedules the playback of a decoded audio buffer.
+     * @param {AudioBuffer} decodedBuffer - The buffer to play.
+     * @private
+     */
+    _enqueueAndPlay(decodedBuffer) {
+        const source = this.audioContext.createBufferSource();
+        source.buffer = decodedBuffer;
+        source.connect(this.audioContext.destination);
+
+        const now = this.audioContext.currentTime;
+        const bufferDuration = decodedBuffer.duration;
+
+        // Schedule to play after the last queued item, or now if queue is empty.
+        const startTime = Math.max(now, this.lastQueuedEndTime);
+
+        source.start(startTime, 0, bufferDuration);
+
+        // Update the end time of the queue, adding a small buffer to prevent clicks.
+        this.lastQueuedEndTime = startTime + bufferDuration + 0.25;
+    }
+
+    /**
+     * Play synthesized audio using queueing logic
      * @param {string} text - Text to synthesize and play
      * @param {Object} [options] - Synthesis options
-     * @returns {Promise<void>} Promise that resolves when audio finishes playing
+     * @returns {Promise<void>} Promise that resolves when audio is queued
      */
     async speak(text, options = {}) {
         if (!this.isInitialized) {
             throw new Error("TextToSpeechService not initialized. Call init() first.");
         }
 
-        return new Promise((resolve, reject) => {
-            try {
-                let ssml = text;
-
-                // If options are provided, create SSML
-                if (options.voice || options.language || options.rate || options.pitch) {
-                    ssml = this.createSSML(text, options);
-                }
-
-                console.log('Speaking text:', { textLength: text.length, options });
-
-                this.synthesizer.speakSsmlAsync(
-                    ssml,
-                    (result) => {
-                        if (result.reason === SpeechSDK.ResultReason.SynthesizingAudioCompleted) {
-                            console.log('Speech playback completed successfully');
-                            resolve();
-                        } else {
-                            const errorMsg = `Speech synthesis failed: ${result.reason}`;
-                            console.error(errorMsg, result.errorDetails);
-                            reject(new Error(`${errorMsg}. ${result.errorDetails || ''}`));
-                        }
-                    },
-                    (error) => {
-                        console.error('Speech synthesis error:', error);
-                        reject(new Error(`Speech synthesis error: ${error}`));
-                    }
-                );
-            } catch (error) {
-                console.error('Error in speak method:', error);
-                reject(error);
-            }
-        });
+        // Use the same queueing logic for all audio playback
+        return this.speakQueued(text, options);
     }
 
     /**
-     * Stop current speech synthesis
+     * Stop current speech synthesis and clear the audio queue
      */
     stop() {
         if (this.synthesizer) {
             this.synthesizer.close();
             console.log('Speech synthesis stopped');
+        }
+        
+        // Clear the audio queue by resetting the end time
+        this.lastQueuedEndTime = 0;
+        
+        // Stop any currently playing audio by suspending the audio context temporarily
+        if (this.audioContext && this.audioContext.state === 'running') {
+            this.audioContext.suspend().then(() => {
+                this.audioContext.resume();
+            });
         }
     }
 
@@ -330,6 +415,13 @@ class TextToSpeechService {
         this.voicesCache = null;
         this.voicesCacheTimestamp = null;
         this.isInitialized = false;
+
+        // Clean up audio queue resources
+        this.stopQueueObserver();
+        if (this.audioContext && this.audioContext.state !== 'closed') {
+            this.audioContext.close();
+        }
+
         console.log('TextToSpeechService disposed');
     }
 
