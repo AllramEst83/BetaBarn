@@ -59,22 +59,31 @@
             <div class="speech-recognition-container">
                 <div class="card shadow-sm text-center interpreter-card">
                     <div class="card-body p-4">
-                        <h1 class="card-title h2 mb-4">🎤 Speech Recognition & Translation</h1>
-                        <p class="card-text text-muted mb-4">Select your languages and start speaking to see real-time speech recognition and translation in action.</p>
+                        <h1 class="card-title h2 mb-4">🎤 Smart Speech Recognition & Translation</h1>
+                        <p class="card-text text-muted mb-4">Select two languages and start speaking in either one. The system will automatically detect which language you're speaking and translate to the other.</p>
                         
                         <!-- Language Selection -->
                         <div class="row mb-4">
                             <div class="col-md-6 mb-3">
-                                <label for="translateFromSelect" class="form-label fw-semibold fs-6">🌍 From Language:</label>
-                                <select id="translateFromSelect" class="form-select language-select">
+                                <label for="language1Select" class="form-label fw-semibold fs-6">🌍 Language 1:</label>
+                                <select id="language1Select" class="form-select language-select">
                                     <!-- Languages will be populated by JavaScript -->
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="translateToSelect" class="form-label fw-semibold fs-6">🎯 To Language:</label>
-                                <select id="translateToSelect" class="form-select language-select">
+                                <label for="language2Select" class="form-label fw-semibold fs-6">� Language 2:</label>
+                                <select id="language2Select" class="form-select language-select">
                                     <!-- Languages will be populated by JavaScript -->
                                 </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Language Detection Status -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div id="detectedLanguageDisplay" class="detected-language-display alert alert-light" role="alert">
+                                    🎙️ Speak in either language - detection will appear here
+                                </div>
                             </div>
                         </div>
                         
@@ -83,7 +92,7 @@
                             <div class="form-check form-switch d-flex justify-content-center">
                                 <input class="form-check-input" type="checkbox" id="enableTranslation" checked>
                                 <label class="form-check-label ms-2" for="enableTranslation">
-                                    🔄 Enable Real-time Translation
+                                    🔄 Enable Real-time Translation Between Languages
                                 </label>
                             </div>
                         </div>

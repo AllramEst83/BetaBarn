@@ -1068,6 +1068,27 @@ footer {
     text-align: center;
 }
 
+.detected-language-display {
+    min-height: 50px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.detected-language-display.alert-primary {
+    background: rgba(37, 99, 235, 0.1);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
 .recognition-text {
     height: 500px;
     background: var(--bg-secondary);
@@ -1252,6 +1273,12 @@ footer {
         font-size: 0.9rem;
         min-height: 50px;
         padding: 0.75rem;
+    }
+    
+    .detected-language-display {
+        font-size: 0.85rem;
+        min-height: 45px;
+        padding: 0.5rem;
     }
     
     /* Stack language selects vertically on mobile */

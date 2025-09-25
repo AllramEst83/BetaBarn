@@ -52,21 +52,55 @@ class SpeechToTextService {
         // Create the speech recognizer
         this.recognizer = new SpeechSDK.SpeechRecognizer(this.speechConfig, audioConfig);
 
+        this.setupRecognizerEvents();
+
+        console.log(`Speech recognizer set up for language: ${sourceLanguage}`);
+    }
+
+    async setupAutoDetectSpeechRecognizer(candidateLanguages = ["en-US", "es-ES"]) {
+        if (!this.speechConfig) {
+            throw new Error('Speech service not initialized. Call init() first.');
+        }
+
+        console.log('Setting up auto-detect speech recognizer for languages:', candidateLanguages);
+
+        // Create auto-detect config with candidate languages
+        const autoDetectSourceLanguageConfig = SpeechSDK.AutoDetectSourceLanguageConfig.fromLanguages(candidateLanguages);
+        
+        // Create audio config for microphone input
+        const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+        
+        // Create the speech recognizer with auto-detect config
+        this.recognizer = SpeechSDK.SpeechRecognizer.FromConfig(this.speechConfig, autoDetectSourceLanguageConfig, audioConfig);
+
+        this.setupRecognizerEvents();
+
+        console.log(`Auto-detect speech recognizer set up for languages: ${candidateLanguages.join(', ')}`);
+    }
+
+    setupRecognizerEvents() {
         // Set up event handlers
         this.recognizer.recognizing = (s, e) => {
             if (e.result.reason === SpeechSDK.ResultReason.RecognizingSpeech) {
                 console.log(`RECOGNIZING: Text=${e.result.text}`);
                 if (this.onResult) {
-                    this.onResult(e.result.text, false); // Interim result
+                    this.onResult(e.result.text, false, null); // Interim result, no language detection yet
                 }
             }
         };
 
         this.recognizer.recognized = (s, e) => {
             if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
-                console.log(`RECOGNIZED: Text=${e.result.text}`);
+                // Extract detected language if available
+                let detectedLanguage = null;
+                if (e.result.properties) {
+                    detectedLanguage = e.result.language;
+                }
+                
+                console.log(`RECOGNIZED: Text=${e.result.text}, DetectedLanguage=${detectedLanguage || 'N/A'}`);
+                
                 if (this.onResult) {
-                    this.onResult(e.result.text, true); // Final result
+                    this.onResult(e.result.text, true, detectedLanguage); // Final result with detected language
                 }
             } else if (e.result.reason === SpeechSDK.ResultReason.NoMatch) {
                 console.log("NOMATCH: Speech could not be recognized.");
@@ -108,6 +142,8 @@ class SpeechToTextService {
         this.recognizer.speechEndDetected = (s, e) => {
             console.log("Speech end detected.");
         };
+
+        console.log('Speech recognizer events configured');
     }
 
     startContinuousRecognition() {

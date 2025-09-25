@@ -61,23 +61,24 @@ class LLMInterpreter {
         this.elements = {
             startBtn: document.getElementById('startBtn'),
             stopBtn: document.getElementById('stopBtn'),
-            translateFromSelect: document.getElementById('translateFromSelect'),
-            translateToSelect: document.getElementById('translateToSelect'),
+            language1Select: document.getElementById('language1Select'),
+            language2Select: document.getElementById('language2Select'),
             enableTranslation: document.getElementById('enableTranslation'),
             statusDisplay: document.getElementById('statusDisplay'),
             recognitionText: document.getElementById('recognitionText'),
             chatList: document.getElementById('chatList'),
-            translationList: document.getElementById('translationList')
+            translationList: document.getElementById('translationList'),
+            detectedLanguageDisplay: document.getElementById('detectedLanguageDisplay')
         };
     }
 
     async populateLanguages() {
-        const translateFromSelect = this.elements.translateFromSelect;
-        const translateToSelect = this.elements.translateToSelect;
+        const language1Select = this.elements.language1Select;
+        const language2Select = this.elements.language2Select;
         const voices = await this.getAvailableLanguages();
 
         // Clear all selects
-        [translateFromSelect, translateToSelect].forEach(select => {
+        [language1Select, language2Select].forEach(select => {
             select.innerHTML = "";
         });
 
@@ -90,25 +91,27 @@ class LLMInterpreter {
         });
 
         localeMap.forEach((localeName, locale) => {
-            // Translation from select
-            const fromOption = document.createElement("option");
-            fromOption.value = locale;
-            fromOption.textContent = `${localeName}`;
+            // Language 1 select
+            const lang1Option = document.createElement("option");
+            lang1Option.value = locale;
+            lang1Option.textContent = `${localeName}`;
             if (locale === "en-US") {
-                fromOption.selected = true;
-                this.currentLanguage = locale; // Set initial current language
+                lang1Option.selected = true;
             }
-            translateFromSelect.appendChild(fromOption);
+            language1Select.appendChild(lang1Option);
 
-            // Translation to select
-            const toOption = document.createElement("option");
-            toOption.value = locale;
-            toOption.textContent = `${localeName}`;
+            // Language 2 select
+            const lang2Option = document.createElement("option");
+            lang2Option.value = locale;
+            lang2Option.textContent = `${localeName}`;
             if (locale === "es-ES") { // Default to Spanish for demo
-                toOption.selected = true;
+                lang2Option.selected = true;
             }
-            translateToSelect.appendChild(toOption);
+            language2Select.appendChild(lang2Option);
         });
+
+        // Set initial current language (will be overridden by auto-detection)
+        this.currentLanguage = language1Select.value;
     }
 
     setupEventListeners() {
@@ -120,12 +123,12 @@ class LLMInterpreter {
             this.elements.stopBtn.addEventListener('click', () => this.stopRecognition());
         }
         
-        if (this.elements.translateFromSelect) {
-            this.elements.translateFromSelect.addEventListener('change', () => this.onTranslateFromChange());
+        if (this.elements.language1Select) {
+            this.elements.language1Select.addEventListener('change', () => this.onLanguage1Change());
         }
         
-        if (this.elements.translateToSelect) {
-            this.elements.translateToSelect.addEventListener('change', () => this.onTranslateToChange());
+        if (this.elements.language2Select) {
+            this.elements.language2Select.addEventListener('change', () => this.onLanguage2Change());
         }
         
         if (this.elements.enableTranslation) {
@@ -176,21 +179,45 @@ class LLMInterpreter {
         }
     }
 
-    onTranslateFromChange() {
-        const selectedLanguage = this.elements.translateFromSelect.value;
-        const selectedText = this.elements.translateFromSelect.options[this.elements.translateFromSelect.selectedIndex].text;
+    onLanguage1Change() {
+        const selectedLanguage = this.elements.language1Select.value;
+        const selectedText = this.elements.language1Select.options[this.elements.language1Select.selectedIndex].text;
         
-        // Update current language for speech recognition
-        this.currentLanguage = selectedLanguage;
-        
-        this.updateStatus(`Source language changed to: ${selectedText}`, 'info');
+        this.updateStatus(`Language 1 changed to: ${selectedText}`, 'info');
+        this.updateDetectedLanguageDisplay('🎙️ Speak in either language - detection will appear here');
     }
 
-    onTranslateToChange() {
-        const selectedLanguage = this.elements.translateToSelect.value;
-        const selectedText = this.elements.translateToSelect.options[this.elements.translateToSelect.selectedIndex].text;
+    onLanguage2Change() {
+        const selectedLanguage = this.elements.language2Select.value;
+        const selectedText = this.elements.language2Select.options[this.elements.language2Select.selectedIndex].text;
         
-        this.updateStatus(`Target language changed to: ${selectedText}`, 'info');
+        this.updateStatus(`Language 2 changed to: ${selectedText}`, 'info');
+        this.updateDetectedLanguageDisplay('🎙️ Speak in either language - detection will appear here');
+    }
+
+    updateDetectedLanguageDisplay(message, type = 'info') {
+        const displayEl = this.elements.detectedLanguageDisplay;
+        if (displayEl) {
+            displayEl.textContent = message;
+            
+            // Remove all alert classes
+            displayEl.className = 'detected-language-display alert';
+            
+            // Add appropriate Bootstrap alert class
+            switch(type) {
+                case 'success':
+                    displayEl.classList.add('alert-success');
+                    break;
+                case 'warning':
+                    displayEl.classList.add('alert-warning');
+                    break;
+                case 'detected':
+                    displayEl.classList.add('alert-primary');
+                    break;
+                default:
+                    displayEl.classList.add('alert-light');
+            }
+        }
     }
 
     onTranslationToggle() {
@@ -227,12 +254,16 @@ class LLMInterpreter {
             this.elements.stopBtn.disabled = !isRecognizing;
         }
         
-        if (this.elements.translateFromSelect) {
-            this.elements.translateFromSelect.disabled = isRecognizing;
+        if (this.elements.language1Select) {
+            this.elements.language1Select.disabled = isRecognizing;
+        }
+        
+        if (this.elements.language2Select) {
+            this.elements.language2Select.disabled = isRecognizing;
         }
     }
 
-    async updateRecognitionText(text, isFinal) {
+    async updateRecognitionText(text, isFinal, detectedLanguage = null) {
         const chatList = this.elements.chatList;
         const recognitionContainer = this.elements.recognitionText;
         
@@ -258,18 +289,32 @@ class LLMInterpreter {
             this.addChatMessage(text, true);
             recognitionContainer.classList.remove('active');
             
+            // Update detected language display if we have detection info
+            if (detectedLanguage) {
+                this.currentLanguage = detectedLanguage;
+                const languageName = this.getLanguageDisplayName(detectedLanguage);
+                this.updateDetectedLanguageDisplay(`🎯 Detected: ${languageName}`, 'detected');
+            }
+            
             // Trigger translation if enabled
             if (this.elements.enableTranslation?.checked) {
-                this.translateText(text);
+                await this.translateDetectedText(text, detectedLanguage);
+            }
 
-                 // Handle TTS for the original language
-                const recommendedVoices = await this.textToSpeechService.getRecommendedVoices(this.currentLanguage, 1);
-                const voiceName = recommendedVoices.length > 0 ? recommendedVoices[0].shortName : undefined;
+            // Handle TTS for the original detected language
+            if (detectedLanguage) {
+                try {
+                    await this.initializeTextToSpeech();
+                    const recommendedVoices = await this.textToSpeechService.getRecommendedVoices(detectedLanguage, 1);
+                    const voiceName = recommendedVoices.length > 0 ? recommendedVoices[0].shortName : undefined;
 
-                this.textToSpeechService.speakQueued(text, { 
-                    language: this.currentLanguage, 
-                    voice: voiceName 
-                });
+                    this.textToSpeechService.speakQueued(text, { 
+                        language: detectedLanguage, 
+                        voice: voiceName 
+                    });
+                } catch (ttsError) {
+                    console.warn('Failed to speak original text:', ttsError);
+                }
             }
             
         } else if (text.trim()) {
@@ -289,44 +334,64 @@ class LLMInterpreter {
         }
     }
 
-    async translateText(text) {
+    getLanguageDisplayName(languageCode) {
+        if (this.languages) {
+            const langObj = this.languages.find(l => l.locale === languageCode);
+            return langObj ? (langObj.localeName || langObj.locale) : languageCode;
+        }
+        return languageCode;
+    }
+
+    determineTargetLanguage(detectedLanguage) {
+        const lang1 = this.elements.language1Select?.value;
+        const lang2 = this.elements.language2Select?.value;
+        
+        if (!lang1 || !lang2) return null;
+        
+        // If detected language matches lang1, translate to lang2
+        if (detectedLanguage === lang1) {
+            return lang2;
+        }
+        // If detected language matches lang2, translate to lang1
+        else if (detectedLanguage === lang2) {
+            return lang1;
+        }
+        // If detected language doesn't match either, default to translating to lang2
+        else {
+            console.warn(`Detected language ${detectedLanguage} doesn't match selected languages. Defaulting to translate to language 2.`);
+            return lang2;
+        }
+    }
+
+    async translateDetectedText(text, detectedLanguage) {
+        if (!detectedLanguage) {
+            this.updateStatus('No language detected, skipping translation', 'warning');
+            return;
+        }
+
+        const targetLanguage = this.determineTargetLanguage(detectedLanguage);
+        if (!targetLanguage) {
+            this.updateStatus('Unable to determine target language', 'error');
+            return;
+        }
+
+        const targetLanguageName = this.getLanguageDisplayName(targetLanguage);
+        const detectedLanguageName = this.getLanguageDisplayName(detectedLanguage);
+
         // Ensure DOM elements are initialized
         if (!this.elements || Object.keys(this.elements).length === 0) {
             this.initializeDOMElements();
         }
         
-        const fromLang = this.elements.translateFromSelect?.value;
-        const toLang = this.elements.translateToSelect?.value;
         const translationList = this.elements.translationList;
-        
-        // Better error handling with specific messages
-        if (!this.elements.translateFromSelect) {
-            this.updateStatus('Translation error: From language selector not found', 'error');
-            return;
-        }
-        
-        if (!this.elements.translateToSelect) {
-            this.updateStatus('Translation error: To language selector not found', 'error');
-            return;
-        }
-        
-        if (!fromLang) {
-            this.updateStatus('Translation error: Please select a source language', 'error');
-            return;
-        }
-        
-        if (!toLang) {
-            this.updateStatus('Translation error: Please select a target language', 'error');
-            return;
-        }
         
         if (!translationList) {
             this.updateStatus('Translation error: Translation display area not found', 'error');
             return;
         }
         
-        if (fromLang === toLang) {
-            this.updateStatus('Translation languages are the same', 'warning');
+        if (detectedLanguage === targetLanguage) {
+            this.updateStatus('Detected and target languages are the same', 'warning');
             return;
         }
         
@@ -340,15 +405,15 @@ class LLMInterpreter {
         const loadingMessage = this.addTranslationMessage('🔄 Translating...', false, true);
         
         try {
-            this.updateStatus('Translating text...', 'loading');
+            this.updateStatus(`Translating from ${detectedLanguageName} to ${targetLanguageName}...`, 'loading');
             
             // Debug logging
-            console.log('Translation request:', {
+            console.log('Auto-translation request:', {
                 text: text.substring(0, 50) + '...',
-                fromLang,
-                toLang,
-                fromLanguageName: this.elements.translateFromSelect.options[this.elements.translateFromSelect.selectedIndex].text,
-                toLanguageName: this.elements.translateToSelect.options[this.elements.translateToSelect.selectedIndex].text
+                detectedLanguage,
+                targetLanguage,
+                detectedLanguageName,
+                targetLanguageName
             });
             
             const response = await fetch('/.netlify/functions/translate', {
@@ -359,8 +424,8 @@ class LLMInterpreter {
                 },
                 body: JSON.stringify({
                     text: text,
-                    langCode1: fromLang,
-                    langCode2: toLang
+                    langCode1: detectedLanguage,
+                    langCode2: targetLanguage
                 })
             });
             
@@ -378,16 +443,16 @@ class LLMInterpreter {
             
             if (result.success && result.translation) {
                 this.addTranslationMessage(result.translation, true);
-                this.updateStatus(`Translated from ${result.sourceLanguageName || fromLang} to ${result.targetLanguageName || toLang}`, 'success');
+                this.updateStatus(`Translated from ${detectedLanguageName} to ${targetLanguageName}`, 'success');
                 
                 // Speak the translated text in the target language
                 try {
                     await this.initializeTextToSpeech();
-                    const recommendedVoices = await this.textToSpeechService.getRecommendedVoices(toLang, 1);
+                    const recommendedVoices = await this.textToSpeechService.getRecommendedVoices(targetLanguage, 1);
                     const voiceName = recommendedVoices.length > 0 ? recommendedVoices[0].shortName : undefined;
 
                     this.textToSpeechService.speakQueued(result.translation, { 
-                        language: toLang, 
+                        language: targetLanguage, 
                         voice: voiceName 
                     });
                 } catch (ttsError) {
@@ -667,22 +732,31 @@ class LLMInterpreter {
             
             this.updateStatus('Requesting microphone permission...', 'loading');
             
-            // Setup speech recognizer with current language
-            await this.speechService.setupSpeechRecognizer(this.getSourceLanguage());
+            // Get candidate languages for auto-detection
+            const lang1 = this.elements.language1Select?.value;
+            const lang2 = this.elements.language2Select?.value;
+            const candidateLanguages = [lang1, lang2].filter(Boolean);
             
-            // Set up event handlers
-            this.speechService.onResult = async (text, isFinal) => {
+            if (candidateLanguages.length < 2) {
+                throw new Error('Please select both languages for auto-detection');
+            }
+            
+            // Setup speech recognizer with auto language detection
+            await this.speechService.setupAutoDetectSpeechRecognizer(candidateLanguages);
+            
+            // Set up event handlers with language detection support
+            this.speechService.onResult = async (text, isFinal, detectedLanguage) => {
                 if (isFinal) {
                     this.updateStatus(`Recognized: "${text}"`, 'success');
                     
-                    // Use the updateRecognitionText method instead of callback
-                    this.updateRecognitionText(text, isFinal);
+                    // Use the updateRecognitionText method with detected language
+                    this.updateRecognitionText(text, isFinal, detectedLanguage);
                 
                 } else {
                     this.updateStatus(`Recognizing... "${text}"`, 'info');
                     
-                    // Use the updateRecognitionText method instead of callback
-                    this.updateRecognitionText(text, isFinal);
+                    // Use the updateRecognitionText method for interim results
+                    this.updateRecognitionText(text, isFinal, detectedLanguage);
                 }
             };
             
@@ -700,14 +774,12 @@ class LLMInterpreter {
             await this.speechService.startContinuousRecognition();
             this.isRecognizing = true;
             
-            // Get language display name
-            let languageName = this.currentLanguage;
-            if (this.languages) {
-                const langObj = this.languages.find(l => l.locale === this.currentLanguage);
-                languageName = langObj ? (langObj.localeName || langObj.locale) : this.currentLanguage;
-            }
+            // Get language display names for both languages
+            const lang1Name = this.getLanguageDisplayName(candidateLanguages[0]);
+            const lang2Name = this.getLanguageDisplayName(candidateLanguages[1]);
             
-            this.updateStatus(`🎤 Listening in ${languageName}...`, 'success');
+            this.updateStatus(`🎤 Listening with auto-detection for ${lang1Name} and ${lang2Name}...`, 'success');
+            this.updateDetectedLanguageDisplay('🎙️ Speak in either language - detection will appear here');
             
         } catch (error) {
             this.updateStatus(`Failed to start speech recognition: ${error.message}`, 'error');
