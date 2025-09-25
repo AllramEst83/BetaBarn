@@ -998,15 +998,24 @@ footer {
 }
 
 /* LLM Interpreter Specific Styles */
+
+/* Container for speech recognition app */
+.speech-recognition-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
 .interpreter-card {
     background: var(--bg-primary);
     border: 1px solid var(--border-color);
     transition: background-color 0.3s ease, border-color 0.3s ease;
+    width: 100%;
+    max-width: none;
 }
 
 .language-select {
-    min-width: 250px;
-    max-width: 400px;
+    min-width: 200px;
     transition: border-color 0.3s ease;
 }
 
@@ -1034,6 +1043,21 @@ footer {
     margin-right: 0.5rem;
 }
 
+.loading-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid #ffffff3d;
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
 .status-display {
     min-height: 60px;
     font-size: 1rem;
@@ -1045,7 +1069,7 @@ footer {
 }
 
 .recognition-text {
-    height: 400px;
+    height: 500px;
     background: var(--bg-secondary);
     border: 2px solid var(--border-color) !important;
     transition: all 0.3s ease;
@@ -1185,17 +1209,28 @@ footer {
 }
 
 /* Mobile responsive adjustments for LLM Interpreter */
+@media (max-width: 991.98px) {
+    .speech-recognition-container {
+        max-width: 100%;
+        padding: 0 15px;
+    }
+}
+
 @media (max-width: 767.98px) {
+    .speech-recognition-container {
+        padding: 0 10px;
+    }
+    
     .interpreter-card {
-        margin: 0.5rem !important;
+        margin: 0.5rem 0 !important;
     }
     
     .recognition-text {
-        height: 300px; /* Smaller height on mobile */
+        height: 350px; /* Smaller height on mobile */
     }
     
     .control-button {
-        min-width: 120px;
+        min-width: 130px;
         font-size: 0.9rem;
         padding: 0.75rem 1rem !important;
     }
@@ -1205,12 +1240,12 @@ footer {
     }
     
     .language-select {
-        min-width: 200px;
+        min-width: 100%;
         font-size: 0.9rem;
     }
     
     .card-title.h2 {
-        font-size: 1.75rem;
+        font-size: 1.5rem;
     }
     
     .status-display {
@@ -1218,11 +1253,20 @@ footer {
         min-height: 50px;
         padding: 0.75rem;
     }
+    
+    /* Stack language selects vertically on mobile */
+    .row.mb-4 .col-md-6 {
+        margin-bottom: 1rem !important;
+    }
 }
 
 @media (max-width: 575.98px) {
+    .speech-recognition-container {
+        padding: 0 5px;
+    }
+    
     .interpreter-card {
-        margin: 0.25rem !important;
+        margin: 0.25rem 0 !important;
     }
     
     .card-body {
@@ -1255,4 +1299,119 @@ footer {
     .form-label {
         font-size: 0.9rem;
     }
+}
+
+/* Translation UI Styles */
+.translation-message {
+    background: rgba(16, 185, 129, 0.1);
+    border-left: 3px solid var(--success-color);
+    color: var(--success-color);
+}
+
+.translation-message.loading {
+    background: rgba(245, 158, 11, 0.1);
+    border-left: 3px solid var(--warning-color);
+    color: var(--warning-color);
+    animation: pulse 1.5s infinite;
+}
+
+.translation-message.error {
+    background: rgba(239, 68, 68, 0.1);
+    border-left: 3px solid var(--danger-color);
+    color: var(--danger-color);
+}
+
+.recognition-text .row {
+    height: 100%;
+    margin: 0;
+}
+
+.recognition-text .col-md-6 {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.recognition-text .border-bottom {
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+.recognition-text .bg-light {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary);
+}
+
+.form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.form-check-label {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 0.5rem;
+}
+
+/* Dark theme support for translation elements */
+[data-theme="dark"] .recognition-text .bg-light {
+    background-color: var(--bg-dark) !important;
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .translation-message {
+    background: rgba(16, 185, 129, 0.15);
+}
+
+[data-theme="dark"] .translation-message.loading {
+    background: rgba(245, 158, 11, 0.15);
+}
+
+[data-theme="dark"] .translation-message.error {
+    background: rgba(239, 68, 68, 0.15);
+}
+
+/* Responsive adjustments for translation UI */
+@media (max-width: 768px) {
+    .recognition-text .col-md-6:first-child {
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .recognition-text .col-md-6 {
+        min-height: 200px;
+    }
+    
+    .language-select {
+        min-width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .control-button {
+        min-width: 140px;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Additional animation keyframes */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }

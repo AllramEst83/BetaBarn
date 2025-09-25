@@ -4,11 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Speech Recognition - BetaBarn</title>
-        <!-- Bootstrap 5 CSS -->
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/site.css">
     <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
-
 </head>
 <body>
     <!-- Auth Loading Spinner -->
@@ -28,327 +27,118 @@
             </div>
         </div>
     </div>
- <!-- Main Content -->
+
+    <!-- Main Content -->
     <div id="main-content" style="display: none;">
-
-
-                <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light" style="background-color: var(--bg-primary); border-bottom: 1px solid var(--border-color);">
-        <div class="container">
-            <a class="navbar-brand" href="../../index.html">🚀 Beta Barn</a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="../../index.html">Projects</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="../pages/about.html">About</a>
-                    </li>
-                </ul>                
-                <button class="theme-toggle btn" id="themeToggle" title="Toggle Theme" aria-label="Toggle between light and dark theme">
-                    🌙
+        <!-- Navigation -->
+        <nav class="navbar navbar-expand-lg navbar-light" style="background-color: var(--bg-primary); border-bottom: 1px solid var(--border-color);">
+            <div class="container">
+                <a class="navbar-brand" href="../../index.html">🚀 Beta Barn</a>
+                
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
                 </button>
-            </div>
-        </div>
-    </nav>
-    
-    <div class="container-fluid py-4">
-        <div class="container" style="max-width: 600px;">
-            <div class="card shadow-sm text-center interpreter-card">
-                <div class="card-body p-4">
-                <h1 class="card-title h2 mb-4">🎤 Speech Recognition</h1>
-                <p class="card-text text-muted mb-4">Select your language and start speaking to see real-time speech recognition in action.</p>
                 
-                <div class="mb-4">
-                    <label for="languageSelect" class="form-label fw-semibold fs-6">🌍 Choose Language:</label>
-                    <select id="languageSelect" class="form-select mx-auto language-select">
-                        <!-- Languages will be populated by JavaScript -->
-                    </select>
-                </div>
-                
-                <div class="d-flex flex-wrap justify-content-center gap-2 mb-4">
-                    <button id="startBtn" class="btn btn-primary btn-lg control-button px-4 py-3">
-                        <span class="mic-icon">🎤</span>Start Listening
-                    </button>
-                    
-                    <button id="stopBtn" class="btn btn-danger btn-lg control-button px-4 py-3" disabled>
-                        <span class="mic-icon">🛑</span>Stop Listening
-                    </button>
-                </div>
-                
-                <div id="statusDisplay" class="alert alert-info status-display" role="alert">
-                    Ready to start speech recognition. Select a language and click "Start Listening".
-                </div>
-                
-                <div id="recognitionText" class="recognition-text border rounded">
-                    <ul id="chatList" class="chat-list list-unstyled m-0">
-                        <li class="empty-state text-muted fst-italic p-4">
-                            🎤 Recognized text will appear here as you speak...
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="../../index.html">Projects</a>
                         </li>
-                    </ul>
+                        <li class="nav-item">
+                            <a class="nav-link" href="../pages/about.html">About</a>
+                        </li>
+                    </ul>                
+                    <button class="theme-toggle btn" id="themeToggle" title="Toggle Theme" aria-label="Toggle between light and dark theme">
+                        🌙
+                    </button>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="container-fluid py-4">
+            <div class="speech-recognition-container">
+                <div class="card shadow-sm text-center interpreter-card">
+                    <div class="card-body p-4">
+                        <h1 class="card-title h2 mb-4">🎤 Speech Recognition & Translation</h1>
+                        <p class="card-text text-muted mb-4">Select your languages and start speaking to see real-time speech recognition and translation in action.</p>
+                        
+                        <!-- Language Selection -->
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label for="translateFromSelect" class="form-label fw-semibold fs-6">🌍 From Language:</label>
+                                <select id="translateFromSelect" class="form-select language-select">
+                                    <!-- Languages will be populated by JavaScript -->
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="translateToSelect" class="form-label fw-semibold fs-6">🎯 To Language:</label>
+                                <select id="translateToSelect" class="form-select language-select">
+                                    <!-- Languages will be populated by JavaScript -->
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Translation Toggle -->
+                        <div class="mb-4">
+                            <div class="form-check form-switch d-flex justify-content-center">
+                                <input class="form-check-input" type="checkbox" id="enableTranslation" checked>
+                                <label class="form-check-label ms-2" for="enableTranslation">
+                                    🔄 Enable Real-time Translation
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Control Buttons -->
+                        <div class="d-flex flex-wrap justify-content-center gap-2 mb-4">
+                            <button id="startBtn" class="btn btn-primary btn-lg control-button px-4 py-3">
+                                <span class="mic-icon">🎤</span>Start Listening
+                            </button>
+                            
+                            <button id="stopBtn" class="btn btn-danger btn-lg control-button px-4 py-3" disabled>
+                                <span class="mic-icon">🛑</span>Stop Listening
+                            </button>
+                        </div>
+                        
+                        <!-- Status Display -->
+                        <div id="statusDisplay" class="alert alert-info status-display" role="alert">
+                            Ready to start speech recognition. Select languages and click "Start Listening".
+                        </div>
+                        
+                        <!-- Recognition and Translation Text Display -->
+                        <div id="recognitionText" class="recognition-text border rounded">
+                            <div class="row g-0">
+                                <div class="col-md-6 border-end">
+                                    <div class="p-3 border-bottom bg-light">
+                                        <h6 class="mb-0">🎤 Speech Recognition</h6>
+                                    </div>
+                                    <ul id="chatList" class="chat-list list-unstyled m-0">
+                                        <li class="empty-state text-muted fst-italic p-4">
+                                            🎤 Recognized text will appear here as you speak...
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="p-3 border-bottom bg-light">
+                                        <h6 class="mb-0">🔄 Translation</h6>
+                                    </div>
+                                    <ul id="translationList" class="chat-list list-unstyled m-0">
+                                        <li class="empty-state text-muted fst-italic p-4">
+                                            🌍 Translated text will appear here...
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    </div>
-    </div>
+
     <!-- Microsoft Cognitive Services Speech SDK -->
     <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>    
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../js/core/llm-interpreter.js" type="module"></script>
-    
-    <script>
-        // Initialize LLM Interpreter
-        let interpreter = null;
-        
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', async function() {
-            initializeInterpreter();
-            await populateLanguages();
-            setupEventListeners();
-        });
-        
-        function initializeInterpreter() {
-            interpreter = new LLMInterpreter({
-                statusCallback: updateStatus,
-                resultCallback: updateRecognitionText
-            });
-        }
-        
-        async function populateLanguages() {
-            const languageSelect = document.getElementById("languageSelect");
-            const voices = await interpreter.getAvailableLanguages();
-
-            languageSelect.innerHTML = "";
-
-            // Deduplicate by locale and keep localeName
-            const localeMap = new Map();
-            voices.forEach(v => {
-                if (!localeMap.has(v.locale)) {
-                    localeMap.set(v.locale, v.localeName);
-                }
-            });
-
-            localeMap.forEach((localeName, locale) => {
-                const option = document.createElement("option");
-                option.value = locale;                     // "en-US"
-                option.textContent = `${localeName}`; // "en-US - English (United States)"
-                if (locale === "en-US") {
-                    option.selected = true;
-                }
-                languageSelect.appendChild(option);
-            });
-        }
-
-        
-        function setupEventListeners() {
-            const startBtn = document.getElementById('startBtn');
-            const stopBtn = document.getElementById('stopBtn');
-            const languageSelect = document.getElementById('languageSelect');
-            
-            startBtn.addEventListener('click', startRecognition);
-            stopBtn.addEventListener('click', stopRecognition);
-            languageSelect.addEventListener('change', onLanguageChange);
-        }
-        
-        function updateStatus(message, type = 'info') {
-            const statusEl = document.getElementById('statusDisplay');
-            statusEl.textContent = message;
-            
-            // Remove all alert classes
-            statusEl.className = 'alert status-display';
-            
-            // Add appropriate Bootstrap alert class
-            switch(type) {
-                case 'success':
-                    statusEl.classList.add('alert-success');
-                    break;
-                case 'error':
-                    statusEl.classList.add('alert-danger');
-                    break;
-                case 'warning':
-                    statusEl.classList.add('alert-warning');
-                    break;
-                case 'loading':
-                    statusEl.classList.add('alert-warning');
-                    break;
-                default:
-                    statusEl.classList.add('alert-info');
-            }
-            
-            console.log(`[${type.toUpperCase()}] ${message}`);
-        }
-        
-        function updateRecognitionText(text, isFinal) {
-            const chatList = document.getElementById('chatList');
-            const recognitionContainer = document.getElementById('recognitionText');
-            
-            // Remove empty state if it exists
-            const emptyState = chatList.querySelector('.empty-state');
-            if (emptyState) {
-                emptyState.remove();
-            }
-            
-            // Check if user was scrolled to bottom before updating
-            const wasScrolledToBottom = isScrolledToBottom();
-            
-            if (isFinal && text.trim()) {
-                // Remove any existing interim message
-                const interimMessage = chatList.querySelector('.interim');
-                if (interimMessage) {
-                    interimMessage.remove();
-                }
-                
-                // Add final recognized text
-                addChatMessage(text, true);
-                recognitionContainer.classList.remove('active');
-                
-            } else if (text.trim()) {
-                // Update or create interim message
-                let interimMessage = chatList.querySelector('.interim');
-                if (interimMessage) {
-                    interimMessage.querySelector('.text').textContent = text;
-                } else {
-                    addChatMessage(text, false);
-                }
-                recognitionContainer.classList.add('active');
-            }
-            
-            // Only auto-scroll if user was already at bottom or if this is an interim message
-            if (wasScrolledToBottom || !isFinal) {
-                scrollToBottom();
-            }
-        }
-        
-        function scrollToBottom() {
-            const chatList = document.getElementById('chatList');
-            // Use smooth scrolling behavior
-            chatList.scrollTo({
-                top: chatList.scrollHeight,
-                behavior: 'smooth'
-            });
-        }
-        
-        function scrollToBottomImmediate() {
-            const chatList = document.getElementById('chatList');
-            // Immediate scroll without animation
-            chatList.scrollTop = chatList.scrollHeight;
-        }
-        
-        function isScrolledToBottom() {
-            const chatList = document.getElementById('chatList');
-            // Check if user is near the bottom (within 50px tolerance)
-            return chatList.scrollHeight - chatList.clientHeight <= chatList.scrollTop + 50;
-        }
-        
-        function addChatMessage(text, isFinal) {
-            const chatList = document.getElementById('chatList');
-            const messageElement = document.createElement('li');
-            
-            const timestamp = new Date().toLocaleTimeString('en-US', { 
-                hour12: false, 
-                hour: '2-digit', 
-                minute: '2-digit',
-                second: '2-digit'
-            });
-            
-            messageElement.className = `chat-message ${isFinal ? 'final' : 'interim'}`;
-            messageElement.innerHTML = `
-                <span class="timestamp small">${timestamp}</span>
-                <div class="text">${text}</div>
-            `;
-            
-            chatList.appendChild(messageElement);
-            
-            // Limit to last 50 messages to prevent memory issues
-            const messages = chatList.querySelectorAll('.chat-message');
-            if (messages.length > 50) {
-                messages[0].remove();
-            }
-        }
-        
-        function clearChat() {
-            const chatList = document.getElementById('chatList');
-            chatList.innerHTML = `
-                <li class="empty-state text-muted fst-italic p-4">
-                    🎤 Recognized text will appear here as you speak...
-                </li>
-            `;
-            updateStatus('Chat cleared', 'info');
-        }
-        
-        function updateButtonStates(isRecognizing) {
-            const startBtn = document.getElementById('startBtn');
-            const stopBtn = document.getElementById('stopBtn');
-            const languageSelect = document.getElementById('languageSelect');
-            
-            startBtn.disabled = isRecognizing;
-            stopBtn.disabled = !isRecognizing;
-            languageSelect.disabled = isRecognizing;
-            
-            if (isRecognizing) {
-                startBtn.innerHTML = '<span class="loading-spinner"></span>Listening...';
-                startBtn.classList.add('btn-secondary');
-                startBtn.classList.remove('btn-primary');
-            } else {
-                startBtn.innerHTML = '<span class="mic-icon">🎤</span>Start Listening';
-                startBtn.classList.add('btn-primary');
-                startBtn.classList.remove('btn-secondary');
-            }
-        }
-        
-        async function startRecognition() {
-            try {
-                updateButtonStates(true);
-                await interpreter.startSpeechRecognition();
-            } catch (error) {
-                updateStatus(`Failed to start: ${error.message}`, 'error');
-                updateButtonStates(false);
-            }
-        }
-        
-        async function stopRecognition() {
-            try {
-                await interpreter.stopSpeechRecognition();
-                updateButtonStates(false);
-                document.getElementById('recognitionText').classList.remove('active');
-                
-                // Remove any interim message when stopping
-                const chatList = document.getElementById('chatList');
-                const interimMessage = chatList.querySelector('.interim');
-                if (interimMessage) {
-                    interimMessage.remove();
-                }
-                
-                clearChat();
-
-            } catch (error) {
-                updateStatus(`Failed to stop: ${error.message}`, 'error');
-                updateButtonStates(false);
-            }
-        }
-        
-        function onLanguageChange() {
-            const languageSelect = document.getElementById('languageSelect');
-            const selectedLanguage = languageSelect.value;
-            
-            if (interpreter.setLanguage(selectedLanguage)) {
-                updateStatus(`Language changed to: ${languageSelect.options[languageSelect.selectedIndex].text}`, 'info');
-            }
-        }
-        
-        // Clean up on page unload
-        window.addEventListener('beforeunload', function() {
-            if (interpreter) {
-                interpreter.close();
-            }
-        });
-    </script>
 </body>
 </html>
