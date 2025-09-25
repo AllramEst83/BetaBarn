@@ -144,14 +144,14 @@ class TextToSpeechService {
         const voices = await this.getVoices(language);
         
         // Sort by neural voices first, then by name
-        const sortedVoices = voices.sort((a, b) => {
-            const aIsNeural = (a.voiceType || '').toLowerCase().includes('neural');
-            const bIsNeural = (b.voiceType || '').toLowerCase().includes('neural');
+       const sortedVoices = voices.sort((a, b) => {
+            const aIsNeural = String(a.voiceType || '').toLowerCase().includes('neural');
+            const bIsNeural = String(b.voiceType || '').toLowerCase().includes('neural');
             
             if (aIsNeural && !bIsNeural) return -1;
             if (!aIsNeural && bIsNeural) return 1;
             
-            return (a.displayName || a.name || '').localeCompare(b.displayName || b.name || '');
+            return String(a.displayName || a.name || '').localeCompare(String(b.displayName || b.name || ''));
         });
 
         return sortedVoices.slice(0, maxCount);

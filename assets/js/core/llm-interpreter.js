@@ -169,11 +169,19 @@ class LLMInterpreter {
             await this.speechService.setupSpeechRecognizer(this.getSourceLanguage());
             
             // Set up event handlers
-            this.speechService.onResult = (text, isFinal) => {
+            this.speechService.onResult = async (text, isFinal) => {
                 if (isFinal) {
                     this.updateStatus(`Recognized: "${text}"`, 'success');
                     if (this.resultCallback) {
                         this.resultCallback(text, isFinal);
+                        
+                        const recommendedVoices = await this.textToSpeechService.getRecommendedVoices(this.currentLanguage, 1);
+                        const voiceName = recommendedVoices.length > 0 ? recommendedVoices[0].shortName : undefined;
+
+                        this.textToSpeechService.speak(text, { 
+                            language: this.currentLanguage, 
+                            voice: voiceName 
+                        });
                     }
                 } else {
                     this.updateStatus(`Recognizing... "${text}"`, 'info');
