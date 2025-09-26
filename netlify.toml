@@ -1,6 +1,7 @@
 [build]
   # This tells Netlify where your serverless functions are located.
   functions = "functions/"
+  command = "cd functions && npm ci"
 
 [dev]
   # Settings for local development
@@ -10,6 +11,7 @@
 
 [functions]
   node_bundler = "esbuild"
+  external_node_modules = ["@google/genai"]
 
 # Environment variables (for production, set these in Netlify UI)
 # For local development, create a .env file in the root directory with:
