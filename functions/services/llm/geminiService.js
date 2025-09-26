@@ -1,7 +1,7 @@
 class GeminiService {
   #apiKey;
   #streamApiUrl =
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:streamGenerateContent";
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent";
 
   constructor(apiKey) {
     if (!apiKey) {
