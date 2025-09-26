@@ -300,23 +300,7 @@ class LLMInterpreter {
             if (this.elements.enableTranslation?.checked) {
                 await this.translateDetectedText(text, detectedLanguage);
             }
-
-            // Handle TTS for the original detected language
-            // if (detectedLanguage) {
-            //     try {
-            //         await this.initializeTextToSpeech();
-            //         const recommendedVoices = await this.textToSpeechService.getRecommendedVoices(detectedLanguage, 1);
-            //         const voiceName = recommendedVoices.length > 0 ? recommendedVoices[0].shortName : undefined;
-
-            //         this.textToSpeechService.speakQueued(text, { 
-            //             language: detectedLanguage, 
-            //             voice: voiceName 
-            //         });
-            //     } catch (ttsError) {
-            //         console.warn('Failed to speak original text:', ttsError);
-            //     }
-            // }
-            
+                        
         } else if (text.trim()) {
             // Update or create interim message
             let interimMessage = chatList.querySelector('.interim');
