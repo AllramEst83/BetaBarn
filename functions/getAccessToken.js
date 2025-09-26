@@ -1,7 +1,6 @@
+import AccessTokenService from './services/tokenService.js';
 
-const AccessTokenService = require('./services/tokenService.js');
-
-exports.handler = async function (event, context) {
+export async function handler(event, context) {
     console.log('Access token request received');
     
     const tokenService = new AccessTokenService();
@@ -33,7 +32,6 @@ exports.handler = async function (event, context) {
         };
     } catch (error) {
         console.error('Token service error:', error.message);
-        
         return {
             statusCode: 500,
             headers: {
@@ -46,4 +44,4 @@ exports.handler = async function (event, context) {
             })
         };
     }
-};
+}

@@ -1,6 +1,6 @@
-const { projectData } = require('./data/projectData.js');
+import { projectData } from './data/projectData.js';
 
-exports.handler = async function (event, context) {
+export async function handler(event, context) {
     // Set CORS headers
     const headers = {
         'Access-Control-Allow-Origin': '*',

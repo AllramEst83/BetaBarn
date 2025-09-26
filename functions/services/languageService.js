@@ -104,5 +104,4 @@ class LanguageService {
   }
 }
 
-// Export singleton instance
-module.exports = new LanguageService();
+export default new LanguageService();

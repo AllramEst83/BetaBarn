@@ -471,41 +471,17 @@ class LLMInterpreter {
     }
 
     animateTextStreaming(textElement, newText) {
-        // Cancel any existing animation
-        if (this.streamingAnimation) {
-            clearInterval(this.streamingAnimation);
+        // With real streaming, just update the text directly since timing comes naturally
+        textElement.textContent = newText;
+        
+        // Auto-scroll to keep the latest text visible
+        const translationList = this.elements.translationList;
+        if (translationList) {
+            translationList.scrollTo({
+                top: translationList.scrollHeight,
+                behavior: 'smooth'
+            });
         }
-        
-        const currentText = textElement.textContent;
-        
-        // If the new text is shorter or completely different, just set it directly
-        if (newText.length <= currentText.length || !newText.startsWith(currentText)) {
-            textElement.textContent = newText;
-            return;
-        }
-        
-        // Animate only the new characters
-        const additionalText = newText.slice(currentText.length);
-        let charIndex = 0;
-        
-        this.streamingAnimation = setInterval(() => {
-            if (charIndex < additionalText.length) {
-                textElement.textContent += additionalText[charIndex];
-                charIndex++;
-                
-                // Auto-scroll to keep the latest text visible
-                const translationList = this.elements.translationList;
-                if (translationList) {
-                    translationList.scrollTo({
-                        top: translationList.scrollHeight,
-                        behavior: 'smooth'
-                    });
-                }
-            } else {
-                clearInterval(this.streamingAnimation);
-                this.streamingAnimation = null;
-            }
-        }, 30); // 30ms per character for smooth typing effect
     }
 
     addTranslationMessage(text, isFinal, isLoading = false, type = 'success') {
@@ -945,15 +921,21 @@ class LLMInterpreter {
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let fullTranslation = '';
-            let allChunks = [];
+            let buffer = '';
 
-            // First, collect all the data (since Netlify sends it all at once anyway)
+            // Process real streaming data as it arrives
             while (true) {
                 const { value, done } = await reader.read();
                 if (done) break;
 
-                const chunk = decoder.decode(value);
-                const lines = chunk.split('\n');
+                // Decode the chunk and add to buffer
+                const chunk = decoder.decode(value, { stream: true });
+                buffer += chunk;
+
+                // Process complete lines from buffer
+                const lines = buffer.split('\n');
+                // Keep the last incomplete line in buffer
+                buffer = lines.pop() || '';
 
                 for (const line of lines) {
                     if (line.startsWith('data: ') && line !== 'data: [DONE]') {
@@ -961,10 +943,16 @@ class LLMInterpreter {
                             const data = JSON.parse(line.substring(6));
                             
                             if (data.chunk !== undefined && !data.complete) {
-                                allChunks.push(data.chunk);
+                                // Real-time streaming: call onChunk immediately with new content
                                 fullTranslation += data.chunk;
+                                if (onChunk && data.chunk.length > 0) {
+                                    onChunk(fullTranslation, false);
+                                }
                             } else if (data.complete) {
                                 // Final completion signal
+                                if (onChunk) {
+                                    onChunk(fullTranslation, true);
+                                }
                                 break;
                             } else if (data.error) {
                                 throw new Error(data.message || 'Translation failed');
@@ -973,37 +961,6 @@ class LLMInterpreter {
                             console.warn('Failed to parse SSE data:', parseError);
                         }
                     }
-                }
-            }
-
-            // Now simulate streaming by sending the text progressively
-            if (allChunks.length > 0) {
-                let accumulatedText = '';
-                
-                // Send chunks progressively to simulate real streaming
-                for (let i = 0; i < allChunks.length; i++) {
-                    accumulatedText += allChunks[i];
-                    
-                    if (onChunk) {
-                        // Add a small delay to simulate streaming
-                        await new Promise(resolve => setTimeout(resolve, 50));
-                        onChunk(accumulatedText, i === allChunks.length - 1);
-                    }
-                }
-                
-                // Final call to ensure completion
-                if (onChunk) {
-                    onChunk(fullTranslation, true);
-                }
-            } else if (fullTranslation && onChunk) {
-                // If no chunks but we have full translation, send it progressively
-                const chars = fullTranslation.split('');
-                let accumulatedText = '';
-                
-                for (let i = 0; i < chars.length; i++) {
-                    accumulatedText += chars[i];
-                    await new Promise(resolve => setTimeout(resolve, 20));
-                    onChunk(accumulatedText, i === chars.length - 1);
                 }
             }
 

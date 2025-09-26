@@ -46,8 +46,4 @@ class BaseTokenProvider {
     }
 }
 
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = BaseTokenProvider;
-} else {
-    window.BaseTokenProvider = BaseTokenProvider;
-}
+export default BaseTokenProvider;

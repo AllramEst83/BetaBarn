@@ -1,4 +1,7 @@
-exports.handler = async function (event, context) {
+// Import necessary modules if needed
+
+// Export the handler function
+export async function handler(event, context) {
     // Set CORS headers
     const headers = {
         'Access-Control-Allow-Origin': '*',

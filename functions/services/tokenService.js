@@ -1,4 +1,4 @@
-const AzureSpeechProvider = require('../tokenProviders/AzureSpeechProvider.js');
+import AzureSpeechProvider from '../tokenProviders/AzureSpeechProvider.js';
 
 /**
  * Main access token service that manages multiple token providers
@@ -122,4 +122,4 @@ class AccessTokenService {
     }
 }
 
-module.exports = AccessTokenService;
+export default AccessTokenService;

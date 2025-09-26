@@ -1,141 +1,151 @@
-const GeminiService = require('./services/llm/geminiService.js');
-const languageService = require('./services/languageService.js');
-
-exports.handler = async (event, context) => {
-  // Set CORS and SSE headers
-  const headers = {
+import GeminiService from './services/llm/geminiService.js';
+import languageService from './services/languageService.js';
+// Netlify Functions 2.0 streaming handler
+export default async (req, context) => {
+  // Set CORS headers
+  const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache',
-    'Connection': 'keep-alive',
     'Access-Control-Allow-Credentials': 'true'
   };
 
   // Handle preflight requests
-  if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers,
-      body: ''
-    };
+  if (req.method === 'OPTIONS') {
+    return new Response('', {
+      status: 200,
+      headers: corsHeaders
+    });
   }
 
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
       headers: {
-        ...headers,
+        ...corsHeaders,
         'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ error: 'Method not allowed' })
-    };
+      }
+    });
   }
 
   try {
-    const { text, langCode1, langCode2 } = JSON.parse(event.body);
+    const { text, langCode1, langCode2 } = await req.json();
     
     if (!text || !langCode1 || !langCode2) {
-      return {
-        statusCode: 400,
+      return new Response(JSON.stringify({ 
+        error: 'Missing required parameters: text, langCode1, langCode2' 
+      }), {
+        status: 400,
         headers: {
-          ...headers,
+          ...corsHeaders,
           'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ 
-          error: 'Missing required parameters: text, langCode1, langCode2' 
-        })
-      };
+        }
+      });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return {
-        statusCode: 500,
+      return new Response(JSON.stringify({ error: 'Gemini API key not configured' }), {
+        status: 500,
         headers: {
-          ...headers,
+          ...corsHeaders,
           'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ error: 'Gemini API key not configured' })
-      };
+        }
+      });
     }
+
+  // Use static ES module imports with correct relative paths
 
     // Use centralized language service
     const uiService = languageService.createUIService();
     const geminiService = new GeminiService(apiKey);
+    const encoder = new TextEncoder();
 
-    // Since Netlify functions don't support true streaming responses,
-    // we'll return the stream as Server-Sent Events format
-    let sseData = '';
-    let chunkIndex = 0;
-    let previousText = '';
+    // Create streaming response using ReadableStream
+    const stream = new ReadableStream({
+      async start(controller) {
+        let chunkIndex = 0;
+        let previousText = '';
 
-    try {
-      await geminiService.translateStream(
-        text, 
-        langCode1, 
-        langCode2, 
-        uiService,
-        (currentText, isDone = false) => {
-          // Only send new content, not the full accumulated text each time
-          const newContent = currentText.slice(previousText.length);
+        try {
+          await geminiService.translateStream(
+            text, 
+            langCode1, 
+            langCode2, 
+            uiService,
+            (currentText, isDone = false) => {
+              try {
+                // Only send new content, not the full accumulated text each time
+                const newContent = currentText.slice(previousText.length);
+                
+                if (newContent.length > 0 || isDone) {
+                  const sseData = `data: ${JSON.stringify({ 
+                    chunk: newContent,
+                    fullText: currentText,
+                    index: chunkIndex++,
+                    isDone: isDone
+                  })}\n\n`;
+
+                  controller.enqueue(encoder.encode(sseData));
+                  previousText = currentText;
+                }
+              } catch (error) {
+                console.error('Error in streaming callback:', error);
+                controller.error(error);
+              }
+            }
+          );
+
+          // Send final completion message
+          const completionData = `data: ${JSON.stringify({ 
+            complete: true,
+            final: true
+          })}\n\n`;
+          controller.enqueue(encoder.encode(completionData));
           
-          if (newContent.length > 0 || isDone) {
-            sseData += `data: ${JSON.stringify({ 
-              chunk: newContent,
-              fullText: currentText,
-              index: chunkIndex++,
-              isDone: isDone
-            })}\n\n`;
-            
-            previousText = currentText;
-            console.log('Sent chunk:', newContent);
-          }
+          const doneData = 'data: [DONE]\n\n';
+          controller.enqueue(encoder.encode(doneData));
+          
+          // Close the stream
+          controller.close();
+
+        } catch (streamError) {
+          console.error('Streaming translation error:', streamError);
+          
+          const errorData = `data: ${JSON.stringify({ 
+            error: 'Translation failed', 
+            message: streamError.message 
+          })}\n\n`;
+          
+          controller.enqueue(encoder.encode(errorData));
+          controller.close();
         }
-      );
+      }
+    });
 
-      // Add final completion message
-      sseData += `data: ${JSON.stringify({ 
-        complete: true,
-        final: true
-      })}\n\n`;
-      
-      sseData += 'data: [DONE]\n\n';
-
-      return {
-        statusCode: 200,
-        headers,
-        body: sseData
-      };
-
-    } catch (streamError) {
-      console.error('Streaming translation error:', streamError);
-      
-      const errorSseData = `data: ${JSON.stringify({ 
-        error: 'Translation failed', 
-        message: streamError.message 
-      })}\n\n`;
-
-      return {
-        statusCode: 500,
-        headers,
-        body: errorSseData
-      };
-    }
+    // Return streaming response
+    return new Response(stream, {
+      status: 200,
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive'
+      }
+    });
 
   } catch (error) {
     console.error('Translation request error:', error);
     
-    const errorResponse = `data: ${JSON.stringify({ 
+    return new Response(JSON.stringify({ 
       error: 'Request processing failed', 
       message: error.message 
-    })}\n\n`;
-    
-    return {
-      statusCode: 500,
-      headers,
-      body: errorResponse
-    };
+    }), {
+      status: 500,
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      }
+    });
   }
 };

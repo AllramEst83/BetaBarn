@@ -8,6 +8,9 @@
   functionsPort = 9999
   publish = "."
 
+[functions]
+  node_bundler = "esbuild"
+
 # Environment variables (for production, set these in Netlify UI)
 # For local development, create a .env file in the root directory with:
 # KAYS_USERNAME=your_username

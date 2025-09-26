@@ -1,4 +1,4 @@
-const projectData = [
+export const projectData = [
     {
         id: 'llm-interpreter',
         title: 'LLM Interpreter',
@@ -12,5 +12,3 @@ const projectData = [
         isDisabled: false
     }
 ];
-
-module.exports = { projectData };

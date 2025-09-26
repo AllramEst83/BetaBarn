@@ -1,4 +1,4 @@
-const BaseTokenProvider = require('./BaseTokenProvider');
+import BaseTokenProvider from './BaseTokenProvider.js';
 
 /**
  * Azure Speech Services token provider
@@ -51,8 +51,4 @@ class AzureSpeechProvider extends BaseTokenProvider {
     }
 }
 
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = AzureSpeechProvider;
-} else {
-    window.AzureSpeechProvider = AzureSpeechProvider;
-}
+export default AzureSpeechProvider;
