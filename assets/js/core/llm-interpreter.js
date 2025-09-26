@@ -405,62 +405,56 @@ class LLMInterpreter {
         const loadingMessage = this.addTranslationMessage('🔄 Translating...', false, true);
         
         try {
-            this.updateStatus(`Translating from ${detectedLanguageName} to ${targetLanguageName}...`, 'loading');
+            this.updateStatus(`Streaming translation from ${detectedLanguageName} to ${targetLanguageName}...`, 'loading');
             
-            // Debug logging
-            console.log('Auto-translation request:', {
-                text: text.substring(0, 50) + '...',
-                detectedLanguage,
+            // Use streaming translation with real-time updates
+            let streamingMessage = null;
+            
+            await this.translateStreamText(
+                text, 
+                detectedLanguage, 
                 targetLanguage,
-                detectedLanguageName,
-                targetLanguageName
-            });
-            
-            const response = await fetch('/.netlify/functions/translate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    text: text,
-                    langCode1: detectedLanguage,
-                    langCode2: targetLanguage
-                })
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            
-            // Remove loading message
-            if (loadingMessage && loadingMessage.parentNode) {
-                loadingMessage.remove();
-            }
-            
-            if (result.success && result.translation) {
-                this.addTranslationMessage(result.translation, true);
-                this.updateStatus(`Translated from ${detectedLanguageName} to ${targetLanguageName}`, 'success');
-                
-                // Speak the translated text in the target language
-                try {
-                    await this.initializeTextToSpeech();
-                    const recommendedVoices = await this.textToSpeechService.getRecommendedVoices(targetLanguage, 1);
-                    const voiceName = recommendedVoices.length > 0 ? recommendedVoices[0].shortName : undefined;
-
-                    this.textToSpeechService.speakQueued(result.translation, { 
-                        language: targetLanguage, 
-                        voice: voiceName 
-                    });
-                } catch (ttsError) {
-                    console.warn('Failed to speak translated text:', ttsError);
-                    // Don't break the translation flow for TTS errors
+                (currentText, isDone) => {
+                    // Remove loading message on first chunk
+                    if (!streamingMessage && loadingMessage && loadingMessage.parentNode) {
+                        loadingMessage.remove();
+                    }
+                    
+                    // Create streaming message if it doesn't exist
+                    if (!streamingMessage) {
+                        streamingMessage = this.addTranslationMessage('', false);
+                    }
+                    
+                    // Simulate typing effect by gradually showing the text
+                    const textElement = streamingMessage.querySelector('.text');
+                    if (textElement) {
+                        // If this is incremental content, animate it appearing
+                        this.animateTextStreaming(textElement, currentText);
+                    }
+                    
+                    // Mark as final when done
+                    if (isDone && streamingMessage) {
+                        streamingMessage.classList.remove('interim');
+                        streamingMessage.classList.add('final');
+                    }
                 }
-            } else {
-                throw new Error(result.message || 'Translation failed - no result returned');
+            );
+            
+            this.updateStatus(`Translated from ${detectedLanguageName} to ${targetLanguageName}`, 'success');
+            
+            // Speak the translated text in the target language
+            try {
+                await this.initializeTextToSpeech();
+                const recommendedVoices = await this.textToSpeechService.getRecommendedVoices(targetLanguage, 1);
+                const voiceName = recommendedVoices.length > 0 ? recommendedVoices[0].shortName : undefined;
+
+                this.textToSpeechService.speakQueued(streamingMessage?.querySelector('.text')?.textContent || '', { 
+                    language: targetLanguage, 
+                    voice: voiceName 
+                });
+            } catch (ttsError) {
+                console.warn('Failed to speak translated text:', ttsError);
+                // Don't break the translation flow for TTS errors
             }
             
         } catch (error) {
@@ -471,8 +465,47 @@ class LLMInterpreter {
             if (loadingMessage && loadingMessage.parentNode) {
                 loadingMessage.remove();
             }
+            
             this.addTranslationMessage(`❌ Translation failed: ${error.message}`, true, false, 'error');
         }
+    }
+
+    animateTextStreaming(textElement, newText) {
+        // Cancel any existing animation
+        if (this.streamingAnimation) {
+            clearInterval(this.streamingAnimation);
+        }
+        
+        const currentText = textElement.textContent;
+        
+        // If the new text is shorter or completely different, just set it directly
+        if (newText.length <= currentText.length || !newText.startsWith(currentText)) {
+            textElement.textContent = newText;
+            return;
+        }
+        
+        // Animate only the new characters
+        const additionalText = newText.slice(currentText.length);
+        let charIndex = 0;
+        
+        this.streamingAnimation = setInterval(() => {
+            if (charIndex < additionalText.length) {
+                textElement.textContent += additionalText[charIndex];
+                charIndex++;
+                
+                // Auto-scroll to keep the latest text visible
+                const translationList = this.elements.translationList;
+                if (translationList) {
+                    translationList.scrollTo({
+                        top: translationList.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }
+            } else {
+                clearInterval(this.streamingAnimation);
+                this.streamingAnimation = null;
+            }
+        }, 30); // 30ms per character for smooth typing effect
     }
 
     addTranslationMessage(text, isFinal, isLoading = false, type = 'success') {
@@ -869,50 +902,12 @@ class LLMInterpreter {
     }
 
     async translateTextWithLanguages(text, fromLang, toLang) {
-        try {
-            if (!text || text.trim().length === 0) {
-                throw new Error('Text cannot be empty');
-            }
-
-            if (!fromLang || !toLang) {
-                throw new Error('Source and target languages must be specified');
-            }
-
-            if (fromLang === toLang) {
-                throw new Error('Source and target languages cannot be the same');
-            }
-
-            this.updateStatus(`Translating from ${fromLang} to ${toLang}...`, 'loading');
-            
-            const response = await fetch('/.netlify/functions/translateStream', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    text: text,
-                    langCode1: fromLang,
-                    langCode2: toLang
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`Translation service error: ${response.status} ${response.statusText}`);
-            }
-
-            const result = await response.json();
-
-            if (result.success && result.translation) {
-                this.updateStatus('Translation completed successfully', 'success');
-                return result.translation;
-            } else {
-                throw new Error(result.message || 'Translation failed');
-            }
-
-        } catch (error) {
-            this.updateStatus(`Translation failed: ${error.message}`, 'error');
-            throw error;
-        }
+        // Use streaming for all translations now
+        let finalResult = '';
+        await this.translateStreamText(text, fromLang, toLang, (currentText, isDone) => {
+            finalResult = currentText;
+        });
+        return finalResult;
     }
 
     async translateStreamText(text, fromLang, toLang, onChunk) {
@@ -931,7 +926,7 @@ class LLMInterpreter {
 
             this.updateStatus(`Starting streaming translation from ${fromLang} to ${toLang}...`, 'loading');
             
-            const response = await fetch('/.netlify/functions/translateStreamSSE', {
+            const response = await fetch('/.netlify/functions/translateStream', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -950,7 +945,9 @@ class LLMInterpreter {
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let fullTranslation = '';
+            let allChunks = [];
 
+            // First, collect all the data (since Netlify sends it all at once anyway)
             while (true) {
                 const { value, done } = await reader.read();
                 if (done) break;
@@ -962,16 +959,13 @@ class LLMInterpreter {
                     if (line.startsWith('data: ') && line !== 'data: [DONE]') {
                         try {
                             const data = JSON.parse(line.substring(6));
-                            if (data.chunk) {
-                                fullTranslation = data.chunk;
-                                if (onChunk) {
-                                    onChunk(fullTranslation, data.final || false);
-                                }
-                            } else if (data.translation && data.complete) {
-                                fullTranslation = data.translation;
-                                if (onChunk) {
-                                    onChunk(fullTranslation, true);
-                                }
+                            
+                            if (data.chunk !== undefined && !data.complete) {
+                                allChunks.push(data.chunk);
+                                fullTranslation += data.chunk;
+                            } else if (data.complete) {
+                                // Final completion signal
+                                break;
                             } else if (data.error) {
                                 throw new Error(data.message || 'Translation failed');
                             }
@@ -979,6 +973,37 @@ class LLMInterpreter {
                             console.warn('Failed to parse SSE data:', parseError);
                         }
                     }
+                }
+            }
+
+            // Now simulate streaming by sending the text progressively
+            if (allChunks.length > 0) {
+                let accumulatedText = '';
+                
+                // Send chunks progressively to simulate real streaming
+                for (let i = 0; i < allChunks.length; i++) {
+                    accumulatedText += allChunks[i];
+                    
+                    if (onChunk) {
+                        // Add a small delay to simulate streaming
+                        await new Promise(resolve => setTimeout(resolve, 50));
+                        onChunk(accumulatedText, i === allChunks.length - 1);
+                    }
+                }
+                
+                // Final call to ensure completion
+                if (onChunk) {
+                    onChunk(fullTranslation, true);
+                }
+            } else if (fullTranslation && onChunk) {
+                // If no chunks but we have full translation, send it progressively
+                const chars = fullTranslation.split('');
+                let accumulatedText = '';
+                
+                for (let i = 0; i < chars.length; i++) {
+                    accumulatedText += chars[i];
+                    await new Promise(resolve => setTimeout(resolve, 20));
+                    onChunk(accumulatedText, i === chars.length - 1);
                 }
             }
 

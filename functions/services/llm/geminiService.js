@@ -13,10 +13,11 @@ class GeminiService {
   async translateStream(text, langCode1, langCode2, uiService, onChunk) {
     const langName1 = uiService.languages[langCode1];
     const langName2 = uiService.languages[langCode2];
-    const prompt = `You are a professional interpreter . Interpreter  the following text from ${langName1} to ${langName2}. Respond ONLY with the translated text, without any introductory phrases, explanations, or commentary. If the text is already in ${langName2}, still provide the translation to ensure proper ${langName2} grammar and style. The text to translate is: "${text}"`;
+    const prompt = `You are a professional interpreter. Interpret the following text from ${langName1} to ${langName2}. Respond ONLY with the translated text, without any introductory phrases, explanations, or commentary. If the text is already in ${langName2}, still provide the translation to ensure proper ${langName2} grammar and style. The text to translate is: "${text}"`;
 
     const payload = { contents: [{ parts: [{ text: prompt }] }] };
     let fullText = "";
+
     try {
       const response = await this.fetchWithRetry(
         `${this.#streamApiUrl}?key=${this.#apiKey}`,
@@ -29,23 +30,34 @@ class GeminiService {
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
+      
       while (true) {
         const { value, done } = await reader.read();
-        if (done) break;
+        if (done) {
+          // Send final chunk
+          onChunk(fullText, true);
+          break;
+        }
+        
         const chunk = decoder.decode(value);
         const regex = /"text"\s*:\s*"([^"]*)"/g;
         let match;
+        
         while ((match = regex.exec(chunk)) !== null) {
           const textPart = JSON.parse(`"${match[1]}"`);
           fullText += textPart;
-          onChunk(fullText);
+          
+          // Send chunk immediately as it arrives
+          onChunk(fullText, false);
         }
       }
     } catch (error) {
       console.error("Gemini stream error:", error);
-      onChunk("Sorry, an error occurred during translation.");
+      const errorMessage = "Sorry, an error occurred during translation.";
+      onChunk(errorMessage, true);
       fullText = "Error";
     }
+    
     return fullText;
   }
 
