@@ -1584,3 +1584,10 @@ footer {
 [data-theme="dark"] .chat-message .text.typing::after {
     color: var(--primary-light);
 }
+
+/* Make chat and translation lists scrollable */
+#chatList,
+#translationList {
+    max-height: 300px;
+    overflow-y: auto;
+}
