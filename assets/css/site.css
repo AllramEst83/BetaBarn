@@ -1555,3 +1555,32 @@ footer {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+/* Typing animation styles */
+.translation-message .text.typing::after,
+.chat-message .text.typing::after {
+    content: '|';
+    font-weight: normal;
+    color: var(--primary-color);
+    animation: blink 1s infinite;
+    margin-left: 1px;
+}
+
+/* Ensure smooth text updates during streaming */
+.translation-message .text,
+.chat-message .text {
+    transition: none; /* Disable any transitions during live updates */
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Dark theme typing cursor */
+[data-theme="dark"] .translation-message .text.typing::after,
+[data-theme="dark"] .chat-message .text.typing::after {
+    color: var(--primary-light);
+}

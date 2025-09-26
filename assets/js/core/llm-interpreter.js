@@ -414,7 +414,7 @@ class LLMInterpreter {
                 text, 
                 detectedLanguage, 
                 targetLanguage,
-                (currentText, isDone) => {
+                async (currentText, isDone) => {
                     // Remove loading message on first chunk
                     if (!streamingMessage && loadingMessage && loadingMessage.parentNode) {
                         loadingMessage.remove();
@@ -423,9 +423,23 @@ class LLMInterpreter {
                     // Create streaming message if it doesn't exist
                     if (!streamingMessage) {
                         streamingMessage = this.addTranslationMessage('', false);
+                        
+                        // Clean up any existing typing animations in other messages
+                        const allTextElements = translationList.querySelectorAll('.text.typing');
+                        allTextElements.forEach(el => {
+                            el.classList.remove('typing');
+                            if (el.typingTimeout) {
+                                clearTimeout(el.typingTimeout);
+                                delete el.typingTimeout;
+                            }
+                            // Clean up target text tracking
+                            if (el.targetText !== undefined) {
+                                delete el.targetText;
+                            }
+                        });
                     }
                     
-                    // Simulate typing effect by gradually showing the text
+                    // Animate typing effect by gradually showing the text
                     const textElement = streamingMessage.querySelector('.text');
                     if (textElement) {
                         // If this is incremental content, animate it appearing
@@ -436,27 +450,32 @@ class LLMInterpreter {
                     if (isDone && streamingMessage) {
                         streamingMessage.classList.remove('interim');
                         streamingMessage.classList.add('final');
+
+                        // Small delay to let typing animation finish, then speak the translated text
+                        setTimeout(async () => {
+                            try {
+                                await this.initializeTextToSpeech();
+                                const recommendedVoices = await this.textToSpeechService.getRecommendedVoices(targetLanguage, 1);
+                                const voiceName = recommendedVoices.length > 0 ? recommendedVoices[0].shortName : undefined;
+
+                                // Use currentText which contains the complete final translation
+                                console.log(`TTS: Speaking translated text (${currentText.length} chars): "${currentText.substring(0, 100)}${currentText.length > 100 ? '...' : ''}"`);
+                                
+                                this.textToSpeechService.speakQueued(currentText || '', { 
+                                    language: targetLanguage, 
+                                    voice: voiceName 
+                                });
+                            } catch (ttsError) {
+                                console.warn('Failed to speak translated text:', ttsError);
+                                // Don't break the translation flow for TTS errors
+                            }
+                        }, 500); // 500ms delay to let typing animation complete
                     }
-                }
-            );
+                            }
+                        );
             
             this.updateStatus(`Translated from ${detectedLanguageName} to ${targetLanguageName}`, 'success');
-            
-            // Speak the translated text in the target language
-            try {
-                await this.initializeTextToSpeech();
-                const recommendedVoices = await this.textToSpeechService.getRecommendedVoices(targetLanguage, 1);
-                const voiceName = recommendedVoices.length > 0 ? recommendedVoices[0].shortName : undefined;
-
-                this.textToSpeechService.speakQueued(streamingMessage?.querySelector('.text')?.textContent || '', { 
-                    language: targetLanguage, 
-                    voice: voiceName 
-                });
-            } catch (ttsError) {
-                console.warn('Failed to speak translated text:', ttsError);
-                // Don't break the translation flow for TTS errors
-            }
-            
+                    
         } catch (error) {
             console.error('Translation error:', error);
             this.updateStatus(`Translation failed: ${error.message}`, 'error');
@@ -471,10 +490,106 @@ class LLMInterpreter {
     }
 
     animateTextStreaming(textElement, newText) {
-        // With real streaming, just update the text directly since timing comes naturally
-        textElement.textContent = newText;
+        // Store the target text on the element for reference
+        if (!textElement.targetText) {
+            textElement.targetText = '';
+        }
         
-        // Auto-scroll to keep the latest text visible
+        console.log(`Animation: Previous target="${textElement.targetText}", New text="${newText}"`);
+        
+        // If this is the first chunk or a completely new text
+        if (textElement.targetText.length === 0) {
+            console.log('Animation: Starting fresh animation');
+            textElement.targetText = newText;
+            textElement.textContent = '';
+            this.animateTyping(textElement, newText, 0);
+        } 
+        // If the new text starts with our existing target text, it's additional content
+        else if (newText.startsWith(textElement.targetText)) {
+            console.log(`Animation: Continuing from position ${textElement.targetText.length}`);
+            // Clear any existing animation
+            if (textElement.typingTimeout) {
+                clearTimeout(textElement.typingTimeout);
+            }
+            
+            // Update target text and continue animation from where the previous target text ended
+            const previousLength = textElement.targetText.length;
+            textElement.targetText = newText;
+            
+            // Set the text to show everything up to where the previous target ended
+            textElement.textContent = textElement.targetText.substring(0, previousLength);
+            
+            // Continue typing from there
+            this.animateTyping(textElement, newText, previousLength);
+        }
+        // If it's completely different text, restart
+        else {
+            console.log('Animation: Text changed, restarting animation');
+            // Clear any existing animation
+            if (textElement.typingTimeout) {
+                clearTimeout(textElement.typingTimeout);
+            }
+            
+            textElement.targetText = newText;
+            textElement.textContent = '';
+            this.animateTyping(textElement, newText, 0);
+        }
+        
+        this.scrollTranslationToBottom();
+    }
+
+    animateTyping(textElement, fullText, startIndex = 0) {
+        // Clear any existing typing animation
+        if (textElement.typingTimeout) {
+            clearTimeout(textElement.typingTimeout);
+        }
+        
+        // Set the initial text up to startIndex
+        if (startIndex > 0) {
+            textElement.textContent = fullText.substring(0, startIndex);
+        }
+        
+        let currentIndex = startIndex;
+        
+        const typeNextCharacter = () => {
+            if (currentIndex < fullText.length) {
+                textElement.textContent = fullText.substring(0, currentIndex + 1);
+                currentIndex++;
+                
+                // Add cursor effect during typing
+                textElement.classList.add('typing');
+                
+                // Variable typing speed - faster for spaces, slower for punctuation
+                let delay = 30; // Default speed
+                const currentChar = fullText[currentIndex - 1];
+                
+                if (currentChar === ' ') {
+                    delay = 10; // Fast for spaces
+                } else if ('.!?'.includes(currentChar)) {
+                    delay = 100; // Slower for punctuation
+                } else if (',;:'.includes(currentChar)) {
+                    delay = 50; // Medium for other punctuation
+                }
+                
+                textElement.typingTimeout = setTimeout(typeNextCharacter, delay);
+                
+                // Auto-scroll during typing
+                this.scrollTranslationToBottom();
+            } else {
+                // Animation complete - remove typing cursor
+                textElement.classList.remove('typing');
+                if (textElement.typingTimeout) {
+                    clearTimeout(textElement.typingTimeout);
+                    delete textElement.typingTimeout;
+                }
+            }
+        };
+        
+        // Start typing animation
+        typeNextCharacter();
+    }
+
+    scrollTranslationToBottom() {
         const translationList = this.elements.translationList;
         if (translationList) {
             translationList.scrollTo({
@@ -574,6 +689,9 @@ class LLMInterpreter {
     clearChat() {
         const chatList = this.elements.chatList;
         const translationList = this.elements.translationList;
+        
+        // Clean up any ongoing typing animations before clearing
+        this.cleanupTypingAnimations();
         
         if (chatList) {
             chatList.innerHTML = `
@@ -943,9 +1061,10 @@ class LLMInterpreter {
                             const data = JSON.parse(line.substring(6));
                             
                             if (data.chunk !== undefined && !data.complete) {
-                                // Real-time streaming: call onChunk immediately with new content
+                                // Real-time streaming: accumulate chunks properly
                                 fullTranslation += data.chunk;
                                 if (onChunk && data.chunk.length > 0) {
+                                    // Pass the complete accumulated text for proper display
                                     onChunk(fullTranslation, false);
                                 }
                             } else if (data.complete) {
@@ -994,6 +1113,9 @@ class LLMInterpreter {
                 await this.stopSpeechRecognition();
             }
             
+            // Clean up any ongoing typing animations
+            this.cleanupTypingAnimations();
+            
             if (this.speechService) {
                 this.speechService.close();
                 this.speechService = null;
@@ -1010,6 +1132,22 @@ class LLMInterpreter {
         } catch (error) {
             this.updateStatus(`Error closing LLM Interpreter: ${error.message}`, 'error');
         }
+    }
+
+    cleanupTypingAnimations() {
+        // Clean up any ongoing typing animations in both chat and translation lists
+        const allTextElements = document.querySelectorAll('.text.typing');
+        allTextElements.forEach(el => {
+            el.classList.remove('typing');
+            if (el.typingTimeout) {
+                clearTimeout(el.typingTimeout);
+                delete el.typingTimeout;
+            }
+            // Clean up the target text tracking
+            if (el.targetText !== undefined) {
+                delete el.targetText;
+            }
+        });
     }
 
     // Public API for UI integration

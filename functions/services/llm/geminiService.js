@@ -24,10 +24,13 @@ class GeminiService {
       for await (const chunk of response) {
         if (chunk.text) {
           fullText += chunk.text;
-          onChunk(chunk.text, false);
+          console.log("Received chunk:", chunk.text);
+          // Pass the accumulated full text, not just the chunk
+          onChunk(fullText, false);
         }
       }
-      onChunk(fullText, true); // Signal completion
+      // Signal completion with the final accumulated text
+      onChunk(fullText, true);
       return fullText;
     } catch (error) {
       console.error("Gemini stream error:", error);
