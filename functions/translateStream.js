@@ -43,9 +43,9 @@ export default async (req, context) => {
       });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return new Response(JSON.stringify({ error: 'Gemini API key not configured' }), {
+    const googleApiKey = process.env.GEMINI_API_KEY;
+    if (!googleApiKey) {
+      return new Response(JSON.stringify({ error: 'API keys not configured' }), {
         status: 500,
         headers: {
           ...corsHeaders,
@@ -58,7 +58,7 @@ export default async (req, context) => {
 
     // Use centralized language service
     const uiService = languageService.createUIService();
-    const geminiService = new GeminiService(apiKey);
+    const geminiService = new GeminiService(googleApiKey);
     const encoder = new TextEncoder();
 
     // Create streaming response using ReadableStream
