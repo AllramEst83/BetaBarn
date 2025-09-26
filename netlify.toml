@@ -1,7 +1,7 @@
 [build]
   # This tells Netlify where your serverless functions are located.
   functions = "functions/"
-  command = "cd functions && npm ci"
+  command = "cd functions && npm install"
 
 [dev]
   # Settings for local development
