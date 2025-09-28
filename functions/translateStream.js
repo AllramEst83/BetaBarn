@@ -1,6 +1,4 @@
 import languageService from './services/languageService.js';
-import GoogleService from './services/llm/googleService.js';
-import OpenAIService from './services/llm/OpenAIService.js';
 import llmRouter, { getLLMService } from './services/llm/llmRouter.js';  
 // Netlify Functions 2.0 streaming handler
 export default async (req, context) => {
