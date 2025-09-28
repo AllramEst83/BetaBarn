@@ -1,7 +1,7 @@
 // import services using ES module syntax
 import GoogleService from './googleService.js';
 import AnthropicService from './anthropicService.js';
-import OpenAIService from './openAIService.js';
+import OpenAIService from './openaiService.js';
 
 export function getLLMService(sentence, googleApiKey, openAIKey) {
   const wordCount = sentence.trim().split(/\s+/).length;
