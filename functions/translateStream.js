@@ -1,5 +1,7 @@
-import GeminiService from './services/llm/geminiService.js';
 import languageService from './services/languageService.js';
+import GoogleService from './services/llm/googleService.js';
+import OpenAIService from './services/llm/OpenAIService.js';
+import llmRouter, { getLLMService } from './services/llm/llmRouter.js';  
 // Netlify Functions 2.0 streaming handler
 export default async (req, context) => {
   // Set CORS headers
@@ -44,7 +46,8 @@ export default async (req, context) => {
     }
 
     const googleApiKey = process.env.GEMINI_API_KEY;
-    if (!googleApiKey) {
+    const openAIKey = process.env.OPENAI_API_KEY;
+    if (!googleApiKey || !openAIKey) {
       return new Response(JSON.stringify({ error: 'API keys not configured' }), {
         status: 500,
         headers: {
@@ -58,7 +61,6 @@ export default async (req, context) => {
 
     // Use centralized language service
     const uiService = languageService.createUIService();
-    const geminiService = new GeminiService(googleApiKey);
     const encoder = new TextEncoder();
 
     // Create streaming response using ReadableStream
@@ -67,8 +69,10 @@ export default async (req, context) => {
         let chunkIndex = 0;
         let previousText = '';
 
+        const llProvider = getLLMService(text, googleApiKey, openAIKey);
+
         try {
-          await geminiService.translateStream(
+          await llProvider.translateStream(
             text, 
             langCode1, 
             langCode2, 

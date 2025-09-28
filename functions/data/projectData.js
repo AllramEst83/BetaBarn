@@ -10,5 +10,17 @@ export const projectData = [
         sourceUrl: '#',
         features: ['Speech-to-text conversion', 'Multi-LLM evaluation layer', 'Intelligent model selection', 'Text-to-speech output'],
         isDisabled: false
+    },
+        {
+        id: 'deepgram-speech',
+        title: 'DeepGram Speech',
+        description: 'A powerful speech recognition API that leverages deep learning to transcribe audio with high accuracy.',
+        status: 'planning',
+        technologies: ['DeepGram API'],
+        icon: '🗣️',
+        demoUrl: './assets/pages/deepgram-speech.html',
+        sourceUrl: '#',
+        features: ['Speech-to-text conversion', 'Multi-LLM evaluation layer', 'Intelligent model selection', 'Text-to-speech output'],
+        isDisabled: false
     }
 ];

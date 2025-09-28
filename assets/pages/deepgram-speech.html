@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Transcription with Deepgram</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .pulse-ring {
+            box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7);
+        }
+        .pulsing {
+            animation: pulse-animation 2s infinite;
+        }
+        @keyframes pulse-animation {
+            0% {
+                box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7);
+            }
+            100% {
+                box-shadow: 0 0 0 20px rgba(52, 211, 153, 0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 flex items-center justify-center min-h-screen">
+
+    <div class="w-full max-w-3xl mx-auto p-4 md:p-8 space-y-8">
+        <!-- Header -->
+        <div class="text-center">
+            <h1 class="text-4xl md:text-5xl font-bold text-white">Live Transcription</h1>
+            <p class="text-lg text-gray-400 mt-2">Powered by Deepgram Nova-3</p>
+        </div>
+
+        <!-- Controls & Status -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-2">
+            <button id="toggleButton" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 shadow-md flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mic"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+            <span>Start Listening</span>
+            </button>
+                <select id="languageSelect" class="bg-gray-800 text-white rounded-lg py-2 px-3 font-medium">
+                <option value="en-US">English</option>
+                <option value="es">Spanish</option>
+                <option value="sv">Swedish</option>
+                <option value="fr">French</option>
+                <option value="de">German</option>
+                <option value="hi">Hindi</option>
+                <option value="pt">Portuguese</option>
+                <option value="ja">Japanese</option>
+                <option value="it">Italian</option>
+                <option value="nl">Dutch</option>
+                <option value="tr">Turkish</option>
+                <option value="no">Norwegian</option>
+                <option value="id">Indonesian</option>
+            </select>
+            <div id="statusIndicator" class="flex items-center gap-3 bg-gray-800 py-2 px-4 rounded-lg">
+            <div id="statusDot" class="w-3 h-3 rounded-full bg-gray-500 transition-colors"></div>
+            <span id="statusText" class="font-medium text-gray-400">Idle</span>
+            </div>
+        </div></button>
+
+        <!-- Transcription Output -->
+    <!-- Transcription Output -->
+<div id="transcriptContainer" 
+     class="bg-gray-800 rounded-2xl shadow-lg p-6 min-h-[200px] max-h-[400px] overflow-y-auto space-y-3">
+    <!-- New transcript lines will be appended here -->
+</div>
+    </div>
+<script type="module" src="../js/core/deepgram-speech.js"></script>
+    <script type="module">
+        import { DeepgramService } from '../js/core/deepgram-speech.js';
+
+        // DOM Elements
+        const toggleButton = document.getElementById('toggleButton');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const transcriptOutput = document.getElementById('transcriptOutput');
+        const languageSelect = document.getElementById('languageSelect');
+
+        let isListening = false;
+        let deepgramService;
+        let currentLineEl = null;
+
+        // --- UI Update Functions ---
+        function setStatus(status, message) {
+            statusText.textContent = message;
+            statusDot.classList.remove('bg-gray-500', 'bg-yellow-500', 'bg-green-500', 'bg-red-500', 'pulse-ring', 'pulsing');
+            switch (status) {
+                case 'connecting':
+                    statusDot.classList.add('bg-yellow-500');
+                    break;
+                case 'listening':
+                    statusDot.classList.add('bg-green-500', 'pulse-ring', 'pulsing');
+                    break;
+                case 'error':
+                    statusDot.classList.add('bg-red-500');
+                    break;
+                case 'idle':
+                default:
+                    statusDot.classList.add('bg-gray-500');
+                    break;
+            }
+        }
+
+        function updateButton(listening) {
+            if (listening) {
+                toggleButton.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-square"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+                    <span>Stop Listening</span>
+                `;
+                toggleButton.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+                toggleButton.classList.add('bg-red-600', 'hover:bg-red-700');
+            } else {
+                toggleButton.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mic"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+                    <span>Start Listening</span>
+                `;
+                toggleButton.classList.remove('bg-red-600', 'hover:bg-red-700');
+                toggleButton.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+            }
+        }
+
+
+        const handleTranscript = (transcript, data) => {
+            if (data.is_final) {
+                if (currentLineEl) {
+                    currentLineEl.textContent = transcript.trim();
+                    currentLineEl.classList.add("text-white");
+                    currentLineEl = null; // reset for next sentence
+                }
+            } else {
+                if (!currentLineEl) {
+                    currentLineEl = document.createElement("p");
+                    currentLineEl.className = "text-lg leading-relaxed text-gray-400";
+                    document.getElementById("transcriptContainer").appendChild(currentLineEl);
+                }
+                currentLineEl.textContent = transcript.trim();
+            }
+
+            // Auto-scroll to bottom
+            const container = document.getElementById("transcriptContainer");
+            container.scrollTop = container.scrollHeight;
+        };
+
+        
+        const handleStatusChange = (status, message) => {
+            setStatus(status, message);
+            if(status === 'error' || status === 'idle') {
+                isListening = false;
+                updateButton(false);
+            }
+        }
+
+        toggleButton.addEventListener('click', async () => {
+            if (isListening) {
+                // Stop listening
+                if (deepgramService) {
+                    deepgramService.disconnect();
+                }
+                isListening = false;
+                updateButton(false);
+                setStatus('idle', 'Idle');
+            } else {
+                const selectedLanguage = languageSelect.value;
+                deepgramService = new DeepgramService(handleTranscript, handleStatusChange, selectedLanguage);
+
+                try {
+                    await deepgramService.connect();
+                    isListening = true;
+                    updateButton(true);
+                } catch (error) {
+                    console.error("Failed to connect:", error);
+                    alert(`Error: ${error.message}`);
+                    setStatus('error', 'Connection Failed');
+                }
+            }
+        });
+
+        // Initialize UI
+        setStatus('idle', 'Idle');
+        updateButton(false);
+
+    </script>
+</body>
+</html>

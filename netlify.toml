@@ -11,7 +11,7 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["@google/genai"]
+  external_node_modules = ["@google/genai", "openai", "@deepgram/sdk"]
 
 # Environment variables (for production, set these in Netlify UI)
 # For local development, create a .env file in the root directory with:

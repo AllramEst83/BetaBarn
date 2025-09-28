@@ -1,4 +1,5 @@
 import AzureSpeechProvider from '../tokenProviders/AzureSpeechProvider.js';
+import DeepGramSpeechProvider from '../tokenProviders/DeepGramSpeechProvider.js';
 
 /**
  * Main access token service that manages multiple token providers
@@ -18,25 +19,30 @@ class AccessTokenService {
         console.log('Initializing token providers...');
 
         // Register Azure Speech provider if configured
-        if (process.env.AZURE_REGION && process.env.AZURE_API_KEY) {
+        if (process.env.AZURE_REGION && process.env.AZURE_API_KEY && process.env.DEEPGRAM_API_KEY) {
             try {
                 const azureProvider = new AzureSpeechProvider({
                     region: process.env.AZURE_REGION,
                     apiKey: process.env.AZURE_API_KEY
                 });
+                console.log('Azure Speech and DeepGram Speech provider configuration validated');
+                const deepGramSpeechProvider = new DeepGramSpeechProvider({
+                    apiKey: process.env.DEEPGRAM_API_KEY
+                });
                 this.providers.set('azure-speech', azureProvider);
+                this.providers.set('deepgram-speech', deepGramSpeechProvider);
                 
                 // Set as default provider if none is set
                 if (!this.defaultProvider) {
                     this.defaultProvider = 'azure-speech';
                 }
-                
-                console.log('Azure Speech provider initialized successfully');
+
+                console.log('Azure Speech and DeepGram Speech provider initialized successfully');
             } catch (error) {
-                console.error('Failed to initialize Azure Speech provider:', error.message);
+                console.error('Failed to initialize Azure Speech and DeepGram Speech provider:', error.message);
             }
         } else {
-            console.warn('Azure Speech provider not configured (missing AZURE_REGION or AZURE_API_KEY)');
+            console.warn('Azure Speech or DeepGram Speech provider not configured (missing Setup keys)');
         }
 
         // Future providers can be added here

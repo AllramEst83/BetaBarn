@@ -1,7 +1,4 @@
-const GeminiService = require('./services/llm/geminiService.js');
-const languageService = require('./services/languageService.js');
-
-import GeminiService from './services/llm/geminiService.js';
+import GoogleService from './services/llm/googleService.js';
 import languageService from './services/languageService.js';
 export async function handler(event, context) {
   console.log('Translation request received:', {
@@ -106,15 +103,15 @@ export async function handler(event, context) {
     // Use centralized language service
     const uiService = languageService.createUIService();
 
-    const geminiService = new GeminiService(apiKey);
-    
-    console.log('Starting translation with Gemini service...');
-    
+    const googleService = new GoogleService(apiKey);
+
+    console.log('Starting translation with Google service...');
+
     let fullTranslation = '';
     let lastChunk = '';
     
     try {
-      const translation = await geminiService.translateStream(
+      const translation = await googleService.translateStream(
         text, 
         langCode1, 
         langCode2, 

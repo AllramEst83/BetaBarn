@@ -1,11 +1,11 @@
 import { GoogleGenAI } from "@google/genai";
 
-class GeminiService {
+class GoogleService {
   #ai;
 
   constructor(apiKey) {
     if (!apiKey) {
-      throw new Error("API key is required for GeminiService.");
+      throw new Error("API key is required for GoogleService.");
     }
     this.#ai = new GoogleGenAI({ apiKey });
   }
@@ -24,7 +24,7 @@ class GeminiService {
       for await (const chunk of response) {
         if (chunk.text) {
           fullText += chunk.text;
-          console.log("Received chunk:", chunk.text);
+          console.log("Gemini intermittent/completed text:", chunk.text);
           // Pass the accumulated full text, not just the chunk
           onChunk(fullText, false);
         }
@@ -41,4 +41,4 @@ class GeminiService {
   }
 }
 
-export default GeminiService;
+export default GoogleService;

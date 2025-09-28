@@ -1,5 +1,7 @@
 import AccessTokenService from './services/tokenService.js';
 
+// How to pass query params:
+// http://localhost:8888/.netlify/functions/getAccessToken?provider=deepgram-speech
 export async function handler(event, context) {
     console.log('Access token request received');
     
