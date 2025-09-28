@@ -1,5 +1,5 @@
 import languageService from './services/languageService.js';
-import llmRouter, { getLLMService } from './services/llm/llmRouter.js';  
+import { getLLMService } from './services/llm/llmRouter.js';  
 // Netlify Functions 2.0 streaming handler
 export default async (req, context) => {
   // Set CORS headers
